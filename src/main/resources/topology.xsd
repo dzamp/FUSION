@@ -1,0 +1,77 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="topology">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element type="xs:string" name="name"/>
+                <xs:element name="configuration">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:boolean" name="topology.debug"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="bolts">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="bolt">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element type="xs:string" name="id"/>
+                                        <xs:element type="xs:string" name="className"/>
+                                        <xs:element type="xs:integer" name="parallelism"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="spouts">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="spout">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element type="xs:string" name="id"/>
+                                        <xs:element type="xs:string" name="className"/>
+                                        <xs:element type="xs:integer" name="parallelism"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="streams">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="stream">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element type="xs:string" name="name"/>
+                                        <xs:element type="xs:string" name="from"/>
+                                        <xs:element type="xs:string" name="to"/>
+                                        <xs:element name="grouping">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element type="xs:string" name="type">
+                                                    </xs:element>
+                                                    <xs:element name="args">
+                                                        <xs:complexType>
+                                                            <xs:sequence>
+                                                                <xs:element type="xs:string" name="arg"/>
+                                                            </xs:sequence>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
+
