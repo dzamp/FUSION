@@ -165,7 +165,7 @@ protected static boolean validateXml(String filename){
         String topologyName = topologyDef.getName();
         // merge contents of `config` into topology config
         // Config conf = FluxBuilder.buildConfig(topologyDef);
-        Config conf =FluxBuilder.buildConfig(topologyDef);
+        Config conf = FluxBuilder.buildConfig(topologyDef);
         ExecutionContext context = new ExecutionContext(topologyDef, conf);
         StormTopology topology = FluxBuilder.buildTopology(context);
         // TopologyBuilder builder2 = new TopologyBuilder();
