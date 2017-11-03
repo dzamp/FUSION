@@ -6,7 +6,7 @@ import org.apache.storm.tuple.Values;
 
 import java.io.Serializable;
 
-public class DirectEmitter implements EmitAction, Serializable{
+public class DirectEmitter implements EmitAction{
     public String streamId;
     public String[] fields;
 

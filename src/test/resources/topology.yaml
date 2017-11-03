@@ -14,7 +14,7 @@ spouts:
 # bolt definitions
 bolts:
   - id: "bolt-1"
-    className: "algorithms.WordCounter"
+    className: "algorithms.ObjectCounter"
     parallelism: 1
 
 #stream definitions

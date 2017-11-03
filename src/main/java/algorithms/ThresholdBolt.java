@@ -117,7 +117,7 @@ public class ThresholdBolt implements IRichBolt {
         this.overThresholdEmitAction = actions;
     }
 
-    public void addAction(EmitAction action) {
+    public void addOverAction(EmitAction action) {
         if(this.overThresholdEmitAction == null) this.overThresholdEmitAction = new ArrayList<>();
         this.overThresholdEmitAction.add(action);
     }
