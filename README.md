@@ -30,6 +30,7 @@ sudo /opt/storm/bin/storm jar fusion-1.0-SNAPSHOT.jar flux.fusion.Fusion --remot
 ```
 
 #### Package using local-run
+Everytime there are code changes we have to repackage in order to run the new code
 ```
 mvn clean package -Plocal-run -DskipTests=true
 ```

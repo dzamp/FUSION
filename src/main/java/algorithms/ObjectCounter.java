@@ -12,13 +12,13 @@ import java.util.Map;
 /**
  * Created by jim on 28/8/2017.
  */
-public class WordCounter extends BaseRichBolt {
-    private HashMap<String,Integer> countMap;
+public class ObjectCounter extends BaseRichBolt {
+    private HashMap<Object,Integer> countMap;
 
     OutputCollector collector;
     String id;
 
-    public WordCounter() {
+    public ObjectCounter() {
     }
 
     @Override
@@ -29,11 +29,13 @@ public class WordCounter extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        if(!countMap.containsKey(tuple.getString(0))){
-            countMap.put(tuple.getString(0),0);
+        Object value = tuple.getValue(0);
+        if(!countMap.containsKey(value)){
+            countMap.put(value,0);
         }else {
-            countMap.put(tuple.getString(0), countMap.get(tuple.getString(0)+1));
+            countMap.put(value, countMap.get(value)+1);
         }
+
     }
 
 

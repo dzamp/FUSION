@@ -7,7 +7,7 @@
     <bolts>
         <bolt>
             <id>bolt-1</id>
-                <className>algorithms.WordCounter</className>
+                <className>algorithms.ObjectCounter</className>
             <parallelism>2</parallelism>
         </bolt>
 

@@ -134,7 +134,8 @@
                                 <manifest>
                                     <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                                     <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                                    <mainClass>flux.fusion.Fusion</mainClass>
+                                    <mainClass>flux.Flux</mainClass>
+                                    <!--<mainClass>flux.fusion.Fusion</mainClass>-->
                                 </manifest>
                             </archive>
                         </configuration>
@@ -162,6 +163,13 @@
                 </plugins>
             </build>
         </profile>
+
+
+
+
+
+
+
         <profile>
             <id>remote-run</id>
             <properties>
@@ -209,7 +217,8 @@
                                     <transformers>
                                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                            <mainClass>flux.fusion.Fusion</mainClass>
+                                            <mainClass>flux.fusion.Flux</mainClass>
+                                            <!--<mainClass>flux.fusion.Fusion</mainClass>-->
                                         </transformer>
                                     </transformers>
                                 </configuration>

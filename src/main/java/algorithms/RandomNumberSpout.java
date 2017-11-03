@@ -6,6 +6,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
+import org.apache.storm.utils.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -16,16 +17,16 @@ public class RandomNumberSpout extends BaseRichSpout {
     Object maximumNumber;
     Object threshold;
     String[] emittedFields;
+    int sleeptime;
 
-    public  RandomNumberSpout(String className, Object max_value, Object threshold, String[] emittedFields) {
+    public RandomNumberSpout(String className, Object max_value, Object threshold, String[] emittedFields, int sleeptime) {
+        this.sleeptime = sleeptime;
         try {
             this.clazz = Class.forName(className);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        System.out.println(clazz.getSuperclass().toString());
-        System.out.println(Number.class.toString());
-        if(clazz.getSuperclass() == Number.class){
+        if (clazz.getSuperclass() == Number.class) {
             try {
                 this.maximumNumber = clazz.getConstructors()[0].newInstance(max_value);
                 this.threshold = clazz.getConstructors()[0].newInstance(threshold);
@@ -42,7 +43,6 @@ public class RandomNumberSpout extends BaseRichSpout {
     }
 
 
-
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         this.collector = collector;
@@ -51,15 +51,10 @@ public class RandomNumberSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-        while (true) {
-            Object random = (Math.random() * (Double)maximumNumber) + 1;
-            collector.emit(new Values(random));
-            try {
-                Thread.currentThread().sleep(3000);
-            } catch (InterruptedException in) {
-                in.printStackTrace();
-            }
-        }
+        Utils.sleep(this.sleeptime);
+        Object random = (Math.random() * (Double) maximumNumber) + 1;
+        collector.emit(new Values(random));
+
     }
 
     @Override

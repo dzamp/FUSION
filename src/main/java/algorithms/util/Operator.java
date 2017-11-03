@@ -4,8 +4,8 @@ public enum Operator  {
     GREATER_THAN,
     LESS_THAN,
     EQUAL,
-    NOT_EQUAL,
-    NONE;
+    NOT_EQUAL;
+
 
     public static Operator select(String value){
         switch (value){
@@ -17,9 +17,10 @@ public enum Operator  {
                 return Operator.EQUAL;
             case "neq":
                 return Operator.NOT_EQUAL;
-            default:
-                return Operator.NONE;
         }
+        return null;
     }
+
+
 
 }
