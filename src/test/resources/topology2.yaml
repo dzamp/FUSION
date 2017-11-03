@@ -50,8 +50,8 @@ bolts:
     configMethods:
       - name: "addAction"
         args: [ref: "direct-over-emitter"]
-      - name: "addUnderAction"
-        args: [ref: "direct-under-emitter"]
+#      - name: "addUnderAction"
+#        args: [ref: "direct-under-emitter"]
 #          - name: "addOnConditionTrueAction"
 #            args: [ ref: "direct-emitter" ]
 
