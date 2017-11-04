@@ -12,18 +12,18 @@ components:
       - "over"
       - ["bNumber"]
 
-  - id: "direct-under-emitter"
-    className: "algorithms.actions.DirectEmitter"
-    constructorArgs:
-      - "under"
-      - ["bNumber"]
+#  - id: "direct-under-emitter"
+#    className: "algorithms.actions.DirectEmitter"
+#    constructorArgs:
+#      - "under"
+#      - ["bNumber"]
 
 
-  - id: "actions-list"
-    className: "java.util.ArrayList"
-    configMethods:
-      - name: "add"
-        args: [ref: "direct-emitter"]
+#  - id: "actions-list"
+#    className: "java.util.ArrayList"
+#    configMethods:
+#      - name: "add"
+#        args: [ref: "direct-emitter"]
 
 # spout definitions
 spouts:
@@ -74,10 +74,12 @@ streams:
     grouping:
       type: SHUFFLE
 
-  - name: "count me in"
+  - name: "bolt-1 --> bolt-2"
+#    streamId: "over"
     from: "bolt-1"
     to: "bolt-2"
     grouping:
+      streamId: "over"
       type: FIELDS
       args: ["bNumber"]
 

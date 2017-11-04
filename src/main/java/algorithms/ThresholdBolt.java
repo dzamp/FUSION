@@ -179,9 +179,9 @@ public class ThresholdBolt implements IRichBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-        for (EmitAction action : this.overThresholdEmitAction) {
-            declarer.declareStream(action.getStreamId(), new Fields(action.getEmittedFields()));
-        }
+//        for (EmitAction action : this.overThresholdEmitAction) {
+//            declarer.declareStream(action.getStreamId(), new Fields(action.getEmittedFields()));
+//        }
 //           TODO we have to find a way to define and implement lots of stream ids.
 //           declareStream uses a unique string id which is actually a name for that stream (we could use the stream name from the yaml file)
 //           but internally this changes the behaviour of the emitter. The emitter now has to know the stream mapping as well as what kind of arguments he must send
