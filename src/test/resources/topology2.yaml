@@ -54,9 +54,9 @@ bolts:
 #      - ref : "actions-list"
 #      - [ ref :  "direct-emitter" ]
     configMethods:
-      - name: "addAction"
+      - name: "addConditionTrueAction"
         args: [ref: "direct-over-emitter"]
-      - name: "addUnderAction"
+      - name: "addConditionFalseAction"
         args: [ref: "over-threshold-emitter"]
 #      - name: "addUnderAction"
 #        args: [ref: "direct-under-emitter"]

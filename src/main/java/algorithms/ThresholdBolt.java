@@ -39,10 +39,9 @@ import java.util.*;
  * How should we implement something like that?
  */
 
-public class ThresholdBolt implements IRichBolt {
+public class ThresholdBolt extends StreamSplitter {
 
-    private TopologyContext ctx;
-    private OutputCollector collector;
+
     private Number threshold;
     private Class clazz;
     private String[] emmitedFields = null;
@@ -50,19 +49,17 @@ public class ThresholdBolt implements IRichBolt {
      * Interface to delegate the action of comparator
      */
     private Comparator<Number> comparator;
+    /**
+     * The filter that will implement the comparison
+     */
     private Filter filter;
-    public List<EmitAction> overThresholdEmitAction;
-    public EmitAction[] overThresholdEmitAction2;
-    public List<EmitAction> underThresholdEmitAction;
-
-
     /**
      * Operator containing the options available( gt - greater than, lt - less than , eq - equal, neq - not equal)
      */
     private Operator operator;
 
     public ThresholdBolt(String className, Number threshold, String operator, String[] emmitedFields) {
-
+        super();
         try {
             this.clazz = Class.forName(className);
         } catch (ClassNotFoundException e) {
@@ -71,11 +68,11 @@ public class ThresholdBolt implements IRichBolt {
         this.threshold = threshold;
         this.operator = Operator.select(operator);
         this.emmitedFields = emmitedFields;
-        this.overThresholdEmitAction.add(new DirectEmitter(null, emmitedFields));
+        this.conditionTrueAction.add(new DirectEmitter(null, emmitedFields));
     }
 
     public ThresholdBolt(String className, Number threshold, String operator, List<EmitAction> actions) {
-
+        super();
         try {
             this.clazz = Class.forName(className);
         } catch (ClassNotFoundException e) {
@@ -83,17 +80,12 @@ public class ThresholdBolt implements IRichBolt {
         }
         this.threshold = threshold;
         this.operator = Operator.select(operator);
-//        this.overThresholdEmitAction = new ArrayList<>();
-//        this.declaredEmissions = emittedFields;
-//        for(String streamId : declaredEmissions.keySet()) {
-//            this.overThresholdEmitAction.add(declaredEmissions.get(streamId).getRight());
-//        }
-        this.overThresholdEmitAction = actions;
+        this.conditionTrueAction = actions;
     }
 
 
     public ThresholdBolt(String className, Number threshold, String operator) {
-
+        super();
         try {
             this.clazz = Class.forName(className);
         } catch (ClassNotFoundException e) {
@@ -101,43 +93,15 @@ public class ThresholdBolt implements IRichBolt {
         }
         this.threshold = threshold;
         this.operator = Operator.select(operator);
-        this.overThresholdEmitAction = new ArrayList<>();
-        this.underThresholdEmitAction = new ArrayList<>();
-//        this.declaredEmissions = emittedFields;
-//        for(String streamId : declaredEmissions.keySet()) {
-//            this.overThresholdEmitAction.add(declaredEmissions.get(streamId).getRight());
-//        }
-//        for(EmitAction action :actions){
-//            this.overThresholdEmitAction.add(action);
-//        }
+
     }
-
-
-    public void configAction(List<EmitAction> actions) {
-//        if(this.overThresholdEmitAction == null) this.overThresholdEmitAction = new ArrayList<>();
-        this.overThresholdEmitAction = actions;
-    }
-
-    public void addAction(EmitAction action) {
-        if(this.overThresholdEmitAction == null) this.overThresholdEmitAction = new ArrayList<>();
-        this.overThresholdEmitAction.add(action);
-    }
-
-    public void addUnderAction(EmitAction action) {
-        if(this.underThresholdEmitAction == null) this.underThresholdEmitAction = new ArrayList<>();
-        this.underThresholdEmitAction.add(action);
-    }
-
 
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-        this.ctx = context;
-        this.collector = collector;
+        super.prepare(stormConf, context, collector);
         resolveComparator(clazz.getName());
         this.filter = resolveFilterByOperator();
-//        this.overThresholdEmitAction = new ArrayList<>();
-//        this.underThresholdEmitAction = new ArrayList<>();
     }
 
 
@@ -153,16 +117,16 @@ public class ThresholdBolt implements IRichBolt {
         Values filteredValues = new Values();
         filter.apply(comparator, input, threshold, filteredValues, rejectedValues);
         //for every emitAction
-            for (EmitAction em : this.overThresholdEmitAction) {
+            for (EmitAction em : this.conditionTrueAction) {
                 try {
-                    em.execute(collector, em.getStreamId(), filteredValues);
+                    em.execute(this.collector, em.getStreamId(), filteredValues);
                 } catch (FieldsMismatchException e) {
                     e.printStackTrace();
                 }
             }
-            for (EmitAction em : this.underThresholdEmitAction) {
+            for (EmitAction em : this.conditionFalseAction) {
                 try {
-                    em.execute(collector, em.getStreamId(), rejectedValues);
+                    em.execute(this.collector, em.getStreamId(), rejectedValues);
                 } catch (FieldsMismatchException e) {
                     e.printStackTrace();
                 }
@@ -171,32 +135,8 @@ public class ThresholdBolt implements IRichBolt {
     }
 
 
-    @Override
-    public void cleanup() {
-
-    }
-
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-
-        for (EmitAction action : this.overThresholdEmitAction) {
-            declarer.declareStream(action.getStreamId(), new Fields(action.getEmittedFields()));
-        }
-        for (EmitAction action : this.underThresholdEmitAction) {
-            declarer.declareStream(action.getStreamId(), new Fields(action.getEmittedFields()));
-        }
-//           TODO we have to find a way to define and implement lots of stream ids.
-//           declareStream uses a unique string id which is actually a name for that stream (we could use the stream name from the yaml file)
-//           but internally this changes the behaviour of the emitter. The emitter now has to know the stream mapping as well as what kind of arguments he must send
-//           declarer.declareStream();
 
 
-    }
-
-    @Override
-    public Map<String, Object> getComponentConfiguration() {
-        return null;
-    }
 
     /**
      * Returns a filter implementation that will filter each input value from the stream. Returns two lists of Values,
@@ -247,7 +187,7 @@ public class ThresholdBolt implements IRichBolt {
     private Filter resolveFilterByOperator() {
         switch (operator) {
             case GREATER_THAN:
-                return new Filter() {
+                this.filter= new Filter() {
                     @Override
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                         Number newValue = (Number) input.getValue(0);
