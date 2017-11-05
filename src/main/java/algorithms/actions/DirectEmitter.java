@@ -30,7 +30,7 @@ public class DirectEmitter implements EmitAction, Serializable{
     @Override
     public void execute(OutputCollector collector, String streamId, Values values) throws FieldsMismatchException {
         if (values != null && values.size() > 0) {
-            if(streamId== null) {
+            if(this.streamId== null) {
                 //direct emit
                 collector.emit(values);
             }
@@ -38,7 +38,7 @@ public class DirectEmitter implements EmitAction, Serializable{
                 if(values.size() != fields.length){
                     throw new FieldsMismatchException();
                 }
-                collector.emit(streamId, values);
+                collector.emit(this.streamId, values);
             }
         }
     }

@@ -29,6 +29,7 @@ public class ObjectCounter extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
+        System.out.println("OBject Counter!!");
         Object value = tuple.getValue(0);
         if(!countMap.containsKey(value)){
             countMap.put(value,0);

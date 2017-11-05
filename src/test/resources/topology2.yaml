@@ -12,6 +12,12 @@ components:
       - "over"
       - ["bNumber"]
 
+  - id: "over-threshold-emitter"
+    className: "algorithms.actions.DirectEmitter"
+    constructorArgs:
+      - "under"
+      - ["bNumber"]
+
 #  - id: "direct-under-emitter"
 #    className: "algorithms.actions.DirectEmitter"
 #    constructorArgs:
@@ -30,7 +36,7 @@ spouts:
   - id: "spout-1"
     className: "algorithms.RandomNumberSpout"
     constructorArgs:
-      - "java.lang.Double"
+      - "java.lang.Integer"
       - 100
       - 80
       - ["number"]
@@ -42,14 +48,16 @@ bolts:
   - id: "bolt-1"
     className: "algorithms.ThresholdBolt"
     constructorArgs:
-      - "java.lang.Double"
-      - 80.0
+      - "java.lang.Integer"
+      - 80
       - "gt"
 #      - ref : "actions-list"
 #      - [ ref :  "direct-emitter" ]
     configMethods:
       - name: "addAction"
         args: [ref: "direct-over-emitter"]
+      - name: "addUnderAction"
+        args: [ref: "over-threshold-emitter"]
 #      - name: "addUnderAction"
 #        args: [ref: "direct-under-emitter"]
 #          - name: "addOnConditionTrueAction"
@@ -64,6 +72,9 @@ bolts:
     className: "algorithms.ObjectCounter"
     parallelism: 2
 
+  - id: "bolt-3"
+    className: "algorithms.ObjectCounter"
+    parallelism: 2
 
 
 #stream definitions
@@ -83,5 +94,13 @@ streams:
       type: FIELDS
       args: ["bNumber"]
 
+  - name: "bolt-1 --> bolt-3"
+#    streamId: "over"
+    from: "bolt-1"
+    to: "bolt-3"
+    grouping:
+      streamId: "under"
+      type: FIELDS
+      args: ["bNumber"]
 
 

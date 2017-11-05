@@ -54,7 +54,7 @@ public class ThresholdBolt implements IRichBolt {
     public List<EmitAction> overThresholdEmitAction;
     public EmitAction[] overThresholdEmitAction2;
     public List<EmitAction> underThresholdEmitAction;
-    private Map<String, Pair<String[], EmitAction>> declaredEmissions;
+
 
     /**
      * Operator containing the options available( gt - greater than, lt - less than , eq - equal, neq - not equal)
@@ -102,6 +102,7 @@ public class ThresholdBolt implements IRichBolt {
         this.threshold = threshold;
         this.operator = Operator.select(operator);
         this.overThresholdEmitAction = new ArrayList<>();
+        this.underThresholdEmitAction = new ArrayList<>();
 //        this.declaredEmissions = emittedFields;
 //        for(String streamId : declaredEmissions.keySet()) {
 //            this.overThresholdEmitAction.add(declaredEmissions.get(streamId).getRight());
@@ -135,8 +136,8 @@ public class ThresholdBolt implements IRichBolt {
         this.collector = collector;
         resolveComparator(clazz.getName());
         this.filter = resolveFilterByOperator();
-        this.overThresholdEmitAction = new ArrayList<>();
-        this.underThresholdEmitAction = new ArrayList<>();
+//        this.overThresholdEmitAction = new ArrayList<>();
+//        this.underThresholdEmitAction = new ArrayList<>();
     }
 
 
@@ -155,14 +156,14 @@ public class ThresholdBolt implements IRichBolt {
         if (this.emmitedFields == null) {
             for (EmitAction em : this.overThresholdEmitAction) {
                 try {
-                    em.execute(collector, null, filteredValues);
+                    em.execute(collector, em.getStreamId(), filteredValues);
                 } catch (FieldsMismatchException e) {
                     e.printStackTrace();
                 }
             }
             for (EmitAction em : this.underThresholdEmitAction) {
                 try {
-                    em.execute(collector, null, rejectedValues);
+                    em.execute(collector, em.getStreamId(), rejectedValues);
                 } catch (FieldsMismatchException e) {
                     e.printStackTrace();
                 }
@@ -179,9 +180,12 @@ public class ThresholdBolt implements IRichBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-//        for (EmitAction action : this.overThresholdEmitAction) {
-//            declarer.declareStream(action.getStreamId(), new Fields(action.getEmittedFields()));
-//        }
+        for (EmitAction action : this.overThresholdEmitAction) {
+            declarer.declareStream(action.getStreamId(), new Fields(action.getEmittedFields()));
+        }
+        for (EmitAction action : this.underThresholdEmitAction) {
+            declarer.declareStream(action.getStreamId(), new Fields(action.getEmittedFields()));
+        }
 //           TODO we have to find a way to define and implement lots of stream ids.
 //           declareStream uses a unique string id which is actually a name for that stream (we could use the stream name from the yaml file)
 //           but internally this changes the behaviour of the emitter. The emitter now has to know the stream mapping as well as what kind of arguments he must send
