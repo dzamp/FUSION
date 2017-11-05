@@ -61,18 +61,18 @@ public class ThresholdBolt implements IRichBolt {
      */
     private Operator operator;
 
-//    public ThresholdBolt(String className, Number threshold, String operator, String[] emmitedFields) {
-//
-//        try {
-//            this.clazz = Class.forName(className);
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//        this.threshold = threshold;
-//        this.operator = Operator.select(operator);
-//        this.emmitedFields = emmitedFields;
-//        this.overThresholdEmitAction.add(new DirectEmitter(null, emmitedFields));
-//    }
+    public ThresholdBolt(String className, Number threshold, String operator, String[] emmitedFields) {
+
+        try {
+            this.clazz = Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        this.threshold = threshold;
+        this.operator = Operator.select(operator);
+        this.emmitedFields = emmitedFields;
+        this.overThresholdEmitAction.add(new DirectEmitter(null, emmitedFields));
+    }
 
     public ThresholdBolt(String className, Number threshold, String operator, List<EmitAction> actions) {
 
@@ -153,7 +153,6 @@ public class ThresholdBolt implements IRichBolt {
         Values filteredValues = new Values();
         filter.apply(comparator, input, threshold, filteredValues, rejectedValues);
         //for every emitAction
-        if (this.emmitedFields == null) {
             for (EmitAction em : this.overThresholdEmitAction) {
                 try {
                     em.execute(collector, em.getStreamId(), filteredValues);
@@ -168,7 +167,7 @@ public class ThresholdBolt implements IRichBolt {
                     e.printStackTrace();
                 }
             }
-        }
+
     }
 
 
