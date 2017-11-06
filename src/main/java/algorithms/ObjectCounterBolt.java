@@ -12,13 +12,13 @@ import java.util.Map;
 /**
  * Created by jim on 28/8/2017.
  */
-public class ObjectCounter extends BaseRichBolt {
+public class ObjectCounterBolt extends BaseRichBolt {
     private HashMap<Object,Integer> countMap;
 
     OutputCollector collector;
     String id;
 
-    public ObjectCounter() {
+    public ObjectCounterBolt() {
     }
 
     @Override
@@ -29,7 +29,6 @@ public class ObjectCounter extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        System.out.println("OBject Counter!!");
         Object value = tuple.getValue(0);
         if(!countMap.containsKey(value)){
             countMap.put(value,0);

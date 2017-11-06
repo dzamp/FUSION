@@ -6,17 +6,19 @@ import org.apache.storm.tuple.Values;
 
 import java.io.Serializable;
 
-public class DirectEmitter implements EmitAction, Serializable{
+public class Emitter implements Action, Serializable{
     public String streamId;
     public String[] fields;
 
-
-    public DirectEmitter(String streamId, String[] fields){
+    public Emitter(String streamId, String[] fields){
         this.streamId = streamId;
         this.fields = fields;
     }
 
-
+    public Emitter(String[] fields){
+        this.streamId = null;
+        this.fields = fields;
+    }
     @Override
     public String getStreamId() {
         return this.streamId;
@@ -36,10 +38,11 @@ public class DirectEmitter implements EmitAction, Serializable{
             }
             else {
                 if(values.size() != fields.length){
-                    throw new FieldsMismatchException();
+                    throw new FieldsMismatchException("Emitted Values do not match with declaration");
                 }
                 collector.emit(streamId, values);
             }
         }
     }
+
 }

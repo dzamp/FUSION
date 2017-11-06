@@ -9,12 +9,16 @@ import java.io.Serializable;
 /**
  * Created by jim on 4/11/2017.
  */
-public class SystemPrinter implements EmitAction, Serializable {
-    private String streamId;
+public class SystemPrinter implements Action, Serializable {
+    private String streamId= null;
     private String[] emitedFields;
 
     public SystemPrinter(String streamId, String[] fields){
         this.streamId = streamId;
+        this.emitedFields = fields;
+    }
+    public SystemPrinter( String[] fields){
+        this.streamId = null;
         this.emitedFields = fields;
     }
 

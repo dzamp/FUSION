@@ -1,4 +1,4 @@
-name: "yaml-topology"
+name: "yaml-topology-3"
 config:
   topology.workers: 1
   topology.debug: true
@@ -9,14 +9,12 @@ components:
   - id: "direct-over-emitter"
     className: "algorithms.actions.Emitter"
     constructorArgs:
-      - "over"
       - ["bNumber"]
 
-  - id: "over-threshold-emitter"
-    className: "algorithms.actions.Emitter"
-    constructorArgs:
-      - "under"
-      - ["bNumber"]
+#  - id: "over-threshold-emitter"
+#    className: "algorithms.actions.Emitter constructorArgs:
+#      - "under"
+#      - ["bNumber"]
 
 
 # spout definitions
@@ -44,8 +42,8 @@ bolts:
     configMethods:
       - name: "addConditionTrueAction"
         args: [ref: "direct-over-emitter"]
-      - name: "addConditionFalseAction"
-        args: [ref: "over-threshold-emitter"]
+#      - name: "addConditionFalseAction"
+#        args: [ref: "over-threshold-emitter"]
 #      - name: "addUnderAction"
 #        args: [ref: "direct-under-emitter"]
 #          - name: "addOnConditionTrueAction"
@@ -58,9 +56,9 @@ bolts:
     className: "algorithms.ObjectCounterBolt"
     parallelism: 2
 
-  - id: "bolt-3"
-    className: "algorithms.ObjectCounterBolt"
-    parallelism: 2
+#  - id: "bolt-3"
+#    className: "algorithms.ObjectCounterBolt"
+#    parallelism: 2
 
 
 #stream definitions
@@ -75,16 +73,16 @@ streams:
     from: "bolt-1"
     to: "bolt-2"
     grouping:
-      streamId: "over"
+#      streamId: "over"
       type: FIELDS
       args: ["bNumber"]
 
-  - name: "bolt-1 --> bolt-3"
-    from: "bolt-1"
-    to: "bolt-3"
-    grouping:
-      streamId: "under"
-      type: FIELDS
-      args: ["bNumber"]
+#  - name: "bolt-1 --> bolt-3"
+#    from: "bolt-1"
+#    to: "bolt-3"
+#    grouping:
+#      streamId: "under"
+#      type: FIELDS
+#      args: ["bNumber"]
 
 

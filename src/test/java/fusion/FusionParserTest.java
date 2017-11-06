@@ -27,7 +27,7 @@ public class FusionParserTest {
 //        assertNotNull(boltList);
 //        assertEquals(boltList.size(), 1);
 //        assertEquals(boltList.get(0).getId(), "bolt-1");
-//        assertEquals(boltList.get(0).getClassName(), "algorithms.ObjectCounter");
+//        assertEquals(boltList.get(0).getClassName(), "algorithms.ObjectCounterBolt");
 //        assertEquals(boltList.get(0).getParallelism(), 2);
 //
 //        List<SpoutDef> spoutList = topologyDef.getSpouts();
@@ -59,7 +59,7 @@ public class FusionParserTest {
 //        assertNotNull(boltList);
 //        assertEquals(boltList.size(), 1);
 //        assertEquals(boltList.get(0).getId(), "bolt-1");
-//        assertEquals(boltList.get(0).getClassName(), "algorithms.ObjectCounter");
+//        assertEquals(boltList.get(0).getClassName(), "algorithms.ObjectCounterBolt");
 //        assertEquals(boltList.get(0).getParallelism(), 2);
 //
 //        List<SpoutDef> spoutList = topologyDef.getSpouts();

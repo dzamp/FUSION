@@ -1,16 +1,13 @@
 package algorithms;
 
-import algorithms.actions.DirectEmitter;
-import algorithms.actions.EmitAction;
+import algorithms.actions.Emitter;
+import algorithms.actions.Action;
 import algorithms.exceptions.FieldsMismatchException;
+import algorithms.flow.StreamBisect;
 import algorithms.util.Filter;
 import algorithms.util.Operator;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IRichBolt;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
@@ -39,7 +36,7 @@ import java.util.*;
  * How should we implement something like that?
  */
 
-public class ThresholdBolt extends StreamSplitter {
+public class ThresholdBolt extends StreamBisect {
 
 
     private Number threshold;
@@ -68,10 +65,10 @@ public class ThresholdBolt extends StreamSplitter {
         this.threshold = threshold;
         this.operator = Operator.select(operator);
         this.emmitedFields = emmitedFields;
-        this.conditionTrueAction.add(new DirectEmitter(null, emmitedFields));
+        this.conditionTrueAction.add(new Emitter(null, emmitedFields));
     }
 
-    public ThresholdBolt(String className, Number threshold, String operator, List<EmitAction> actions) {
+    public ThresholdBolt(String className, Number threshold, String operator, List<Action> actions) {
         super();
         try {
             this.clazz = Class.forName(className);
@@ -117,14 +114,15 @@ public class ThresholdBolt extends StreamSplitter {
         Values filteredValues = new Values();
         filter.apply(comparator, input, threshold, filteredValues, rejectedValues);
         //for every emitAction
-            for (EmitAction em : this.conditionTrueAction) {
+
+            for (Action em : this.conditionTrueAction) {
                 try {
                     em.execute(this.collector, em.getStreamId(), filteredValues);
                 } catch (FieldsMismatchException e) {
                     e.printStackTrace();
                 }
             }
-            for (EmitAction em : this.conditionFalseAction) {
+            for (Action em : this.conditionFalseAction) {
                 try {
                     em.execute(this.collector, em.getStreamId(), rejectedValues);
                 } catch (FieldsMismatchException e) {

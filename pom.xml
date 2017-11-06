@@ -91,6 +91,11 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
             <version>LATEST</version>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.paho</groupId>
+            <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+            <version>LATEST</version>
+        </dependency>
     </dependencies>
 
     <profiles>
