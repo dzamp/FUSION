@@ -1,5 +1,6 @@
 package algorithms.consumers;
 
+import algorithms.actions.Action;
 import javafx.util.Pair;
 import org.apache.storm.shade.org.eclipse.jetty.util.BlockingArrayQueue;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -10,34 +11,59 @@ import org.apache.storm.tuple.Values;
 import org.eclipse.paho.client.mqttv3.*;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-public class MqttConsumerSpout implements IRichSpout, MqttCallback {
-    private String brokerUrl;
-    private String clientId;
-    private String topic;
-    private SpoutOutputCollector collector;
-    private Map configMap;
-    private TopologyContext ctx;
+public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback{
     private MqttClient client;
     private int qos = 1;
+    private String regex =null;
     protected BlockingQueue<Pair<String,MqttMessage>> messageQueue;
+    private Class[] classMap= null;
+    private List<Action> emitActions=null;
+
+    public MqttConsumerSpout(String brokerUrl, String clientId, String topic, String regex, Class ...args) {
+        super(brokerUrl,clientId,topic,regex,args);
+    }
 
     public MqttConsumerSpout(String brokerUrl, String clientId, String topic) {
-        this.brokerUrl = brokerUrl;
-        this.clientId = clientId;
-        this.topic = topic;
+       super(brokerUrl,clientId,topic);
+    }
+
+
+
+    @Override
+    public void nextTuple() {
+        while (!messageQueue.isEmpty()) {
+            MqttMessage message = null;
+            String topic = null;
+            Values values;
+            try {
+                Pair<String,MqttMessage> p = messageQueue.take();
+                values= mapToValues(p.getValue().toString() ,p.getKey(),regex, classMap);
+                if(emitActions.size()==1 && emitActions.get(0).getStreamId()==null) collector.emit(values);
+                else emitActions.forEach(action -> collector.emit(action.getStreamId(), values));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
 
     @Override
+    public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
+        messageQueue.put(new Pair<>(topic.trim(), mqttMessage));
+    }
+
+    @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-        this.collector = collector;
-        this.configMap = conf;
-        this.ctx = context;
+        super.open(conf,context,collector);
         messageQueue = new BlockingArrayQueue<>();
     }
+
 
     private void closeMqttClientConnection() {
         if (client.isConnected()) {
@@ -48,7 +74,6 @@ public class MqttConsumerSpout implements IRichSpout, MqttCallback {
             }
         }
     }
-
 
     @Override
     public void close() {
@@ -78,44 +103,7 @@ public class MqttConsumerSpout implements IRichSpout, MqttCallback {
         }
     }
 
-    @Override
-    public void nextTuple() {
-        while (!messageQueue.isEmpty()) {
-            MqttMessage message = null;
-            String topic = null;
-            Values values = new Values();
-            try {
-                Pair<String,MqttMessage> p = messageQueue.take();
-                message =  p.getValue();
-                values.add(message.toString());
-                topic = p.getKey();
-                collector.emit(values);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
-        }
-    }
-
-    @Override
-    public void ack(Object msgId) {
-
-    }
-
-    @Override
-    public void fail(Object msgId) {
-
-    }
-
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-
-    }
-
-    @Override
-    public Map<String, Object> getComponentConfiguration() {
-        return null;
-    }
 
     @Override
     public void connectionLost(Throwable throwable) {
@@ -127,12 +115,9 @@ public class MqttConsumerSpout implements IRichSpout, MqttCallback {
     }
 
     @Override
-    public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-        messageQueue.put(new Pair<>(topic.trim(), mqttMessage));
-    }
-
-    @Override
     public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
 
     }
+
+
 }
