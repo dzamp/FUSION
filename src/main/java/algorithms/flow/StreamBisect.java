@@ -1,7 +1,9 @@
 package algorithms.flow;
 
 import algorithms.actions.Action;
+import algorithms.actions.BoltEmitter;
 import algorithms.exceptions.FieldsMismatchException;
+import org.apache.storm.generated.Bolt;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichBolt;
@@ -24,8 +26,8 @@ public abstract class StreamBisect implements IRichBolt {
     protected TopologyContext topologyContext;
     protected OutputCollector collector;
     protected Map configMap;
-    protected List<Action> conditionTrueAction;
-    protected List<Action> conditionFalseAction;
+    protected List<BoltEmitter> conditionTrueAction;
+    protected List<BoltEmitter> conditionFalseAction;
 
     // 1. Is the threshold something we need?
     // 2. What family of algorithms will a splitter represent?
@@ -41,11 +43,11 @@ public abstract class StreamBisect implements IRichBolt {
         this.conditionFalseAction = new ArrayList<>();
     }
 
-    public void addConditionTrueAction(Action em) {
+    public void addConditionTrueAction(BoltEmitter em) {
         this.conditionTrueAction.add(em);
     }
 
-    public void addConditionFalseAction(Action em) {
+    public void addConditionFalseAction(BoltEmitter em) {
         this.conditionFalseAction.add(em);
     }
 
@@ -67,14 +69,14 @@ public abstract class StreamBisect implements IRichBolt {
     }
 
     public void emitValues(Values filteredValues, Values rejectedValues) {
-        for (Action em : this.conditionTrueAction) {
+        for (BoltEmitter em : this.conditionTrueAction) {
             try {
                 em.execute(this.collector, em.getStreamId(), filteredValues);
             } catch (FieldsMismatchException e) {
                 e.printStackTrace();
             }
         }
-        for (Action em : this.conditionFalseAction) {
+        for (BoltEmitter em : this.conditionFalseAction) {
             try {
                 em.execute(this.collector, em.getStreamId(), rejectedValues);
             } catch (FieldsMismatchException e) {

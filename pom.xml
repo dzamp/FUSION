@@ -96,6 +96,11 @@
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
             <version>LATEST</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-kafka</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
 
     <profiles>

@@ -1,6 +1,6 @@
 package algorithms;
 
-import algorithms.actions.Emitter;
+import algorithms.actions.BoltEmitter;
 import algorithms.actions.Action;
 import algorithms.exceptions.FieldsMismatchException;
 import algorithms.flow.StreamBisect;
@@ -65,10 +65,10 @@ public class ThresholdBolt extends StreamBisect {
         this.threshold = threshold;
         this.operator = Operator.select(operator);
         this.emmitedFields = emmitedFields;
-        this.conditionTrueAction.add(new Emitter(null, emmitedFields));
+        this.conditionTrueAction.add(new BoltEmitter(null, emmitedFields));
     }
 
-    public ThresholdBolt(String className, Number threshold, String operator, List<Action> actions) {
+    public ThresholdBolt(String className, Number threshold, String operator, List<BoltEmitter> actions) {
         super();
         try {
             this.clazz = Class.forName(className);
@@ -115,14 +115,14 @@ public class ThresholdBolt extends StreamBisect {
         filter.apply(comparator, input, threshold, filteredValues, rejectedValues);
         //for every emitAction
 
-            for (Action em : this.conditionTrueAction) {
+            for (BoltEmitter em : this.conditionTrueAction) {
                 try {
                     em.execute(this.collector, em.getStreamId(), filteredValues);
                 } catch (FieldsMismatchException e) {
                     e.printStackTrace();
                 }
             }
-            for (Action em : this.conditionFalseAction) {
+            for (BoltEmitter em : this.conditionFalseAction) {
                 try {
                     em.execute(this.collector, em.getStreamId(), rejectedValues);
                 } catch (FieldsMismatchException e) {

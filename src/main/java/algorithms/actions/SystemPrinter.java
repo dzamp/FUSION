@@ -9,7 +9,7 @@ import java.io.Serializable;
 /**
  * Created by jim on 4/11/2017.
  */
-public class SystemPrinter implements Action, Serializable {
+public class SystemPrinter implements BoltAction, Serializable {
     private String streamId= null;
     private String[] emitedFields;
 

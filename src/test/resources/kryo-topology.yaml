@@ -1,34 +1,21 @@
-name: "yaml-topology"
+name: "kryo-topology"
 config:
   topology.workers: 1
   topology.debug: true
-
-
-components:
-
-  - id: "direct-over-emitter"
-    className: "algorithms.actions.BoltEmittertter"
-    constructorArgs:
-      - "over"
-      - ["bNumber"]
-
-  - id: "over-threshold-emitter"
-    className: "algorithms.actions.BoltEmittertter"
-    constructorArgs:
-      - "under"
-      - ["bNumber"]
+  topology.
 
 
 # spout definitions
 spouts:
   - id: "spout-1"
-    className: "algorithms.RandomNumberSpout"
+    className: "algorithms.consumers.MqttConsumerSpout"
     constructorArgs:
-      - "java.lang.Integer"
-      - 100
-      - 80
-      - ["number"]
-      - 1000
+      - "tcp://localhost:1883"
+      - " "
+      - "health_monitor/oxygen_saturation"
+      - ","
+      - java.lang.String
+      - java.lang.Integer
     parallelism: 2
 
 # bolt definitions
@@ -44,8 +31,8 @@ bolts:
     configMethods:
       - name: "addConditionTrueAction"
         args: [ref: "direct-over-emitter"]
-      - name: "addConditionFalseAction"
-        args: [ref: "over-threshold-emitter"]
+#      - name: "addConditionFalseAction"
+#        args: [ref: "over-threshold-emitter"]
 #      - name: "addUnderAction"
 #        args: [ref: "direct-under-emitter"]
 #          - name: "addOnConditionTrueAction"
@@ -58,9 +45,9 @@ bolts:
     className: "algorithms.ObjectCounterBolt"
     parallelism: 2
 
-  - id: "bolt-3"
-    className: "algorithms.ObjectCounterBolt"
-    parallelism: 2
+#  - id: "bolt-3"
+#    className: "algorithms.ObjectCounterBolt"
+#    parallelism: 2
 
 
 #stream definitions
@@ -75,16 +62,16 @@ streams:
     from: "bolt-1"
     to: "bolt-2"
     grouping:
-      streamId: "over"
+#      streamId: "over"
       type: FIELDS
       args: ["bNumber"]
 
-  - name: "bolt-1 --> bolt-3"
-    from: "bolt-1"
-    to: "bolt-3"
-    grouping:
-      streamId: "under"
-      type: FIELDS
-      args: ["bNumber"]
+#  - name: "bolt-1 --> bolt-3"
+#    from: "bolt-1"
+#    to: "bolt-3"
+#    grouping:
+#      streamId: "under"
+#      type: FIELDS
+#      args: ["bNumber"]
 
 

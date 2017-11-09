@@ -6,16 +6,16 @@ import org.apache.storm.tuple.Values;
 
 import java.io.Serializable;
 
-public class Emitter implements Action, Serializable{
+public class BoltEmitter implements BoltAction, Serializable{
     public String streamId;
     public String[] fields;
 
-    public Emitter(String streamId, String[] fields){
+    public BoltEmitter(String streamId, String[] fields){
         this.streamId = streamId;
         this.fields = fields;
     }
 
-    public Emitter(String[] fields){
+    public BoltEmitter(String[] fields){
         this.streamId = null;
         this.fields = fields;
     }

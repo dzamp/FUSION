@@ -1,33 +1,16 @@
 package algorithms.consumers;
 
-public class KafkaSpout extends ConsumerSpout {
+import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.task.TopologyContext;
+
+import java.util.Map;
+
+public class KafkaSpout extends org.apache.storm.kafka.KafkaSpout {
 
 
-    public KafkaSpout(String brokerUrl, String clientId, String topic, String regex, Class... args) {
-        super(brokerUrl, clientId, topic, regex, args);
-    }
-
-    public KafkaSpout(String brokerUrl, String clientId, String topic) {
-        super(brokerUrl, clientId, topic);
-    }
-
-    @Override
-    public void close() {
-
-    }
-
-    @Override
-    public void activate() {
-
-    }
-
-    @Override
-    public void deactivate() {
-
-    }
-
-    @Override
-    public void nextTuple() {
-        
+    public KafkaSpout(SpoutConfig spoutConf) {
+//        spoutConf = new SpoutConfig();
+        super(spoutConf);
     }
 }

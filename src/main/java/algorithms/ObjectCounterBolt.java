@@ -17,7 +17,7 @@ public class ObjectCounterBolt extends BaseRichBolt {
 
     OutputCollector collector;
     String id;
-
+    String fieldOfInterest= "field1";
     public ObjectCounterBolt() {
     }
 
@@ -26,6 +26,8 @@ public class ObjectCounterBolt extends BaseRichBolt {
         collector = outputCollector;
         countMap = new HashMap<>();
     }
+
+
 
     @Override
     public void execute(Tuple tuple) {

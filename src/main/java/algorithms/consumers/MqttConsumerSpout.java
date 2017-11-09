@@ -1,6 +1,9 @@
 package algorithms.consumers;
 
 import algorithms.actions.Action;
+import algorithms.actions.SpoutAction;
+import algorithms.actions.SpoutEmitter;
+import algorithms.exceptions.FieldsMismatchException;
 import javafx.util.Pair;
 import org.apache.storm.shade.org.eclipse.jetty.util.BlockingArrayQueue;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -16,22 +19,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback{
+
+/**
+ * This class implements an mqtt spout that connects to a specific topic.
+ * The requirements for this class to work are
+ * - String serverURI -> the connection to the broker
+ * - String clientId -> the id of the client
+ * - String topic -> the topic of subscription
+ * - String regex -> regex so that we can split the incoming values
+ * - String ...args / Class args the classes that will be used to emit the split values
+ * Otherwise in case we want to emit to only one bolt we might as well use the second constructor and supply only one emitAction
+ */
+public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback {
     private MqttClient client;
     private int qos = 1;
-    private String regex =null;
-    protected BlockingQueue<Pair<String,MqttMessage>> messageQueue;
-    private Class[] classMap= null;
-    private List<Action> emitActions=null;
+    private String regex = null;
+    protected BlockingQueue<Pair<String, MqttMessage>> messageQueue;
+    private List<SpoutEmitter> emitActions = null;
 
-    public MqttConsumerSpout(String brokerUrl, String clientId, String topic, String regex, Class ...args) {
-        super(brokerUrl,clientId,topic,regex,args);
+    //TODO error with strings
+    //ERROR with strings classes!!!
+    public MqttConsumerSpout(String serverURI, String clientId, String topic, String regex, Class... args) {
+        super(serverURI, clientId, topic, regex, args);
     }
 
     public MqttConsumerSpout(String brokerUrl, String clientId, String topic) {
-       super(brokerUrl,clientId,topic);
+        super(brokerUrl, clientId, topic);
     }
-
 
 
     @Override
@@ -41,14 +55,25 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback{
             String topic = null;
             Values values;
             try {
-                Pair<String,MqttMessage> p = messageQueue.take();
-                values= mapToValues(p.getValue().toString() ,p.getKey(),regex, classMap);
-                if(emitActions.size()==1 && emitActions.get(0).getStreamId()==null) collector.emit(values);
-                else emitActions.forEach(action -> collector.emit(action.getStreamId(), values));
+            Pair<String, MqttMessage> p = messageQueue.take();
+            //TODO emitAction should handle the direct stream?
+//            if (emitActions.size() == 1 && emitActions.get(0).getStreamId() == null)
+//                try {
+//                    emitActions.get(0).execute(collector, null, emitActions.get(0).mapToValues(p.getValue().toString(), regex, classMap));
+//                } catch (FieldsMismatchException e) {
+//                    e.printStackTrace();
+//                }
+//            else
+                emitActions.forEach(action -> {
+                    try {
+                        action.execute(collector, action.getStreamId(), p.getValue().toString());
+                    } catch (FieldsMismatchException e) {
+                        e.printStackTrace();
+                    }
+                });
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -60,8 +85,16 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback{
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-        super.open(conf,context,collector);
+        super.open(conf, context, collector);
         messageQueue = new BlockingArrayQueue<>();
+        try {
+            client = new MqttClient(brokerUrl, clientId);
+            client.connect();
+            client.setCallback(this);
+            client.subscribe(topic, qos);
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -77,19 +110,11 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback{
 
     @Override
     public void close() {
-        closeMqttClientConnection();
     }
 
     @Override
     public void activate() {
-        try {
-            client = new MqttClient(brokerUrl, clientId);
-            client.connect();
-            client.setCallback(this);
-            client.subscribe(topic, qos);
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+
     }
 
     @Override
@@ -104,11 +129,10 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback{
     }
 
 
-
     @Override
     public void connectionLost(Throwable throwable) {
         try {
-            throw new Exception(throwable);
+            throw new Exception("Connection lost or not established ", throwable);
         } catch (Exception e) {
             e.printStackTrace();
         }

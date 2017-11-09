@@ -5,11 +5,13 @@ config:
 
 
 components:
-
   - id: "direct-over-emitter"
-    className: "algorithms.actions.BoltEmittertter"
+    className: "algorithms.actions.SpoutEmitter"
     constructorArgs:
-      - ["bNumber"]
+      - ""
+      - ["number"]
+      - ""
+      - ["java.lang.Integer"]
 
 #  - id: "over-threshold-emitter"
 #    className: "algorithms.actions.BoltEmittertter constructorArgs:
@@ -20,36 +22,20 @@ components:
 # spout definitions
 spouts:
   - id: "spout-1"
-    className: "algorithms.RandomNumberSpout"
+    className: "algorithms.consumers.MqttConsumerSpout"
     constructorArgs:
-      - "java.lang.Integer"
-      - 100
-      - 80
-      - ["number"]
-      - 1000
+      - "tcp://localhost:1883"
+      - "123123"
+      - "health_monitor/blood_pressure"
+    configMethods:
+      - name: "addEmitAction"
+        args: [ref: "direct-over-emitter"]
     parallelism: 2
 
 # bolt definitions
 bolts:
   - id: "bolt-1"
-    className: "algorithms.ThresholdBolt"
-    constructorArgs:
-      - "java.lang.Integer"
-      - 80
-      - "gt"
-#      - ref : "actions-list"
-#      - [ ref :  "direct-emitter" ]
-    configMethods:
-      - name: "addConditionTrueAction"
-        args: [ref: "direct-over-emitter"]
-#      - name: "addConditionFalseAction"
-#        args: [ref: "over-threshold-emitter"]
-#      - name: "addUnderAction"
-#        args: [ref: "direct-under-emitter"]
-#          - name: "addOnConditionTrueAction"
-#            args: [ ref: "direct-emitter" ]
-
-
+    className: "algorithms.ObjectCounterBolt"
     parallelism: 2
 
   - id: "bolt-2"
@@ -67,16 +53,14 @@ streams:
     from: "spout-1"
     to: "bolt-1"
     grouping:
-      type: SHUFFLE
+      type: FIELDS
+      args: ["number"]
 
-  - name: "bolt-1 --> bolt-2"
-    from: "bolt-1"
+  - name: "spout-1 --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
+    from: "spout-1"
     to: "bolt-2"
     grouping:
-#      streamId: "over"
-      type: FIELDS
-      args: ["bNumber"]
-
+      type: SHUFFLE
 #  - name: "bolt-1 --> bolt-3"
 #    from: "bolt-1"
 #    to: "bolt-3"

@@ -7,6 +7,6 @@ import org.apache.storm.tuple.Values;
 public interface Action {
     public String getStreamId();
     public String[] getEmittedFields();
-    public void execute(OutputCollector collector, String streamId, Values values) throws FieldsMismatchException;
+//    public void execute(OutputCollector collector, String streamId, Values values) throws FieldsMismatchException;
 
 }
