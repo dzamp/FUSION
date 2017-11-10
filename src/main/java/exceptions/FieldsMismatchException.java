@@ -1,4 +1,4 @@
-package algorithms.exceptions;
+package exceptions;
 
 public class FieldsMismatchException extends Exception {
 

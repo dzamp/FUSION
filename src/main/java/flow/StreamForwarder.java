@@ -1,4 +1,4 @@
-package algorithms.flow;
+package flow;
 
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;

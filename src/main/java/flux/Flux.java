@@ -120,7 +120,7 @@ public class Flux {
                 " [options] <topology-config.yaml>", options);
     }
 
-    protected static void runCli(CommandLine cmd)throws Exception {
+    protected static void runCli(CommandLine cmd) throws Exception {
         if(!cmd.hasOption(OPTION_NO_SPLASH)) {
             printSplash();
         }

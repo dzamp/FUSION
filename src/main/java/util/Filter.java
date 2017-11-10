@@ -1,4 +1,4 @@
-package algorithms.util;
+package util;
 
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;

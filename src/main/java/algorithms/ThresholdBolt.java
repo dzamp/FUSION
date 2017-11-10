@@ -1,11 +1,11 @@
 package algorithms;
 
-import algorithms.actions.BoltEmitter;
-import algorithms.actions.Action;
-import algorithms.exceptions.FieldsMismatchException;
-import algorithms.flow.StreamBisect;
-import algorithms.util.Filter;
-import algorithms.util.Operator;
+import actions.BoltEmitter;
+import actions.Action;
+import exceptions.FieldsMismatchException;
+import flow.StreamBisect;
+import util.Filter;
+import util.Operator;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;

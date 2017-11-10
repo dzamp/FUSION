@@ -14,10 +14,10 @@ import java.util.Map;
  */
 public class ObjectCounterBolt extends BaseRichBolt {
     private HashMap<Object,Integer> countMap;
-
     OutputCollector collector;
     String id;
     String fieldOfInterest= "field1";
+
     public ObjectCounterBolt() {
     }
 

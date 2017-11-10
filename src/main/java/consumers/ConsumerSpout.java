@@ -1,14 +1,12 @@
-package algorithms.consumers;
+package consumers;
 
-import algorithms.actions.Action;
-import algorithms.actions.SpoutAction;
+import actions.Action;
+import actions.SpoutAction;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Values;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +21,7 @@ public abstract class ConsumerSpout implements IRichSpout {
     protected TopologyContext ctx;
     protected String regex = null;
     protected Class[] classMap = null;
-    private List<SpoutAction> emitActions = null;
+    protected List<SpoutAction> emitActions = null;
 
 
     public ConsumerSpout(String serverURI, String clientId, String topic, String regex, Class... args) {

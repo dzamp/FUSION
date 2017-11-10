@@ -1,4 +1,4 @@
-package algorithms.flow;
+package flow;
 
 public class StreamManager {
 }

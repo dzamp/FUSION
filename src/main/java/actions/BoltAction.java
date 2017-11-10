@@ -1,6 +1,6 @@
-package algorithms.actions;
+package actions;
 
-import algorithms.exceptions.FieldsMismatchException;
+import exceptions.FieldsMismatchException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 

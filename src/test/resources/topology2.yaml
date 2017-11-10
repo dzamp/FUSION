@@ -7,13 +7,13 @@ config:
 components:
 
   - id: "direct-over-emitter"
-    className: "algorithms.actions.BoltEmittertter"
+    className: "actions.BoltEmittertter"
     constructorArgs:
       - "over"
       - ["bNumber"]
 
   - id: "over-threshold-emitter"
-    className: "algorithms.actions.BoltEmittertter"
+    className: "actions.BoltEmittertter"
     constructorArgs:
       - "under"
       - ["bNumber"]

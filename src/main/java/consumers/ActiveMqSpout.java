@@ -1,4 +1,4 @@
-package algorithms.consumers;
+package consumers;
 
 public class ActiveMqSpout {
 }

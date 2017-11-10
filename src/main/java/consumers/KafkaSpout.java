@@ -1,10 +1,6 @@
-package algorithms.consumers;
+package consumers;
 
 import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.spout.SpoutOutputCollector;
-import org.apache.storm.task.TopologyContext;
-
-import java.util.Map;
 
 public class KafkaSpout extends org.apache.storm.kafka.KafkaSpout {
 

@@ -1,4 +1,4 @@
-package algorithms.util;
+package util;
 
 public enum Operator  {
     GREATER_THAN,

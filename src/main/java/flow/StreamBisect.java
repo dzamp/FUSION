@@ -1,9 +1,8 @@
-package algorithms.flow;
+package flow;
 
-import algorithms.actions.Action;
-import algorithms.actions.BoltEmitter;
-import algorithms.exceptions.FieldsMismatchException;
-import org.apache.storm.generated.Bolt;
+import actions.Action;
+import actions.BoltEmitter;
+import exceptions.FieldsMismatchException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichBolt;

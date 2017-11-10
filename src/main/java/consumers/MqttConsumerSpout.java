@@ -1,21 +1,18 @@
-package algorithms.consumers;
+package consumers;
 
-import algorithms.actions.Action;
-import algorithms.actions.SpoutAction;
-import algorithms.actions.SpoutEmitter;
-import algorithms.exceptions.FieldsMismatchException;
+import actions.Action;
+import actions.SpoutAction;
+import actions.SpoutEmitter;
+import exceptions.FieldsMismatchException;
 import javafx.util.Pair;
 import org.apache.storm.shade.org.eclipse.jetty.util.BlockingArrayQueue;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IRichSpout;
-import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Values;
+import org.apache.storm.utils.Time;
 import org.eclipse.paho.client.mqttv3.*;
 
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -35,7 +32,7 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback {
     private int qos = 1;
     private String regex = null;
     protected BlockingQueue<Pair<String, MqttMessage>> messageQueue;
-    private List<SpoutEmitter> emitActions = null;
+//    private List<SpoutEmitter> emitActions = null;
 
     //TODO error with strings
     //ERROR with strings classes!!!
@@ -88,7 +85,7 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback {
         super.open(conf, context, collector);
         messageQueue = new BlockingArrayQueue<>();
         try {
-            client = new MqttClient(brokerUrl, clientId);
+            client = new MqttClient(brokerUrl, clientId+ Time.currentTimeMillis());
             client.connect();
             client.setCallback(this);
             client.subscribe(topic, qos);

@@ -8,7 +8,7 @@ config:
 # spout definitions
 spouts:
   - id: "spout-1"
-    className: "algorithms.consumers.MqttConsumerSpout"
+    className: "consumers.MqttConsumerSpout"
     constructorArgs:
       - "tcp://localhost:1883"
       - " "
