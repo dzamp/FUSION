@@ -49,7 +49,7 @@ bolts:
     parallelism: 2
 
   - id: "bolt-2"
-    className: "algorithms.MvaluesThresholdBolt"
+    className: "algorithms.MValuesThresholdBolt"
     constructorArgs:
       - "java.lang.Integer"
       - 5000

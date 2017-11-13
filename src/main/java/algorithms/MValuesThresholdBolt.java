@@ -31,7 +31,9 @@ public class MValuesThresholdBolt extends StreamBisect {
      */
     protected Operator operator;
 
-
+    /**
+     * The position in the values list that the Threshold will be implemented
+     */
     protected int positionInStream = 0;
 
     /**
@@ -45,6 +47,11 @@ public class MValuesThresholdBolt extends StreamBisect {
 
     public MValuesThresholdBolt(String className,Number threshold, int positionInStream, String operator) {
         super();
+        try {
+            this.clazz = Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         this.threshold = threshold;
         this.positionInStream = positionInStream;
         this.operator = Operator.select(operator);
@@ -52,6 +59,11 @@ public class MValuesThresholdBolt extends StreamBisect {
 
     public MValuesThresholdBolt(String className,Number threshold,  String operator) {
         super();
+        try {
+            this.clazz = Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         this.threshold = threshold;
         this.operator = Operator.select(operator);
     }
