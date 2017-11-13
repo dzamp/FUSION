@@ -1,46 +1,23 @@
 package algorithms;
 
 import actions.BoltEmitter;
-import actions.Action;
 import exceptions.FieldsMismatchException;
 import flow.StreamBisect;
-import util.Filter;
-import util.Operator;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import util.Filter;
+import util.Operator;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Map;
 
-
-/**
- * THOUGHTS
- * Having a class that will handle any values that checks for confitional values(like a threshold, equality or something else)
- * This proves challenging for a number of reasons.
- * First of all numbers are java primitives and being able to know which kind of primitive arrives from the queue and compare them is an issue. java.lang.Number
- * doesnt support comparison for apparent reason.
- * ASSUMPTIONS
- * 1. We assume that a stream of elements will always contain the same type of elements during an execution phase.
- * <p>
- * We have to come up with an efficient way to compare them without having to create separate classes for each primitive.
- * With that in mind we now have to define what is equality( will there be a decimal point that will be rounded?, check the comparator implementation:
- * When comparing  2 doubles lets say 1.02 and 1.32 the minus operation will produce -0.30. When this is being cast to int this will be rounded to 0
- * This perplexes things more.
- * <p>
- * After that we will need to create a clever way to define a number of actions that can happen whenever the criterion are being met.
- * Perhaps someone would like to filter certain values and guide them through another queue
- * or someone might want to keep those values
- * or send an alarm somewhere else
- * Solution 1: we can create extra bolts that do that. But splitting the flow is not covered
- * How should we implement something like that?
- */
-
-public class ThresholdBolt extends StreamBisect {
-
+public class MValuesThresholdBolt extends StreamBisect {
 
     protected Number threshold;
     protected Class clazz;
+
     /**
      * Interface to delegate the action of comparator
      */
@@ -55,17 +32,28 @@ public class ThresholdBolt extends StreamBisect {
     protected Operator operator;
 
 
+    protected int positionInStream = 0;
 
-    public ThresholdBolt(String className, Number threshold, String operator) {
+    /**
+     * @param className        The className of the Number that will be compared(java.lang.Integer, java.lang.Long. java.lang.Float, java.lang.Double)
+     * @param threshold        A value of className that will be the threshold
+     * @param positionInStream An integer indicating the position among the N values that the threshold will be executed. Allowed values are [0,N)
+     * @param operator         An operator indicating the kind of comparison we would like with the threshold value
+     *                         Constructor to create the MValuesThresholdBolt that will apply thresholding to the values of the stream. The stream has N values meaning that in any incoming tuple
+     *                         there are multiple objects.
+     */
+
+    public MValuesThresholdBolt(String className,Number threshold, int positionInStream, String operator) {
         super();
-        try {
-            this.clazz = Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        this.threshold = threshold;
+        this.positionInStream = positionInStream;
+        this.operator = Operator.select(operator);
+    }
+
+    public MValuesThresholdBolt(String className,Number threshold,  String operator) {
+        super();
         this.threshold = threshold;
         this.operator = Operator.select(operator);
-
     }
 
 
@@ -78,38 +66,31 @@ public class ThresholdBolt extends StreamBisect {
 
 
     @Override
-    /**
-     * Do we have to support more complex inputs? if so how will we know the structure?
-     * and how can we obtain in from the yaml file?
-     */
-    public void execute(Tuple input) {
-        //we have to return a number of values that will be supplied from the operation
-        //do appropriate action according to the Operator.
-        Values rejectedValues = new Values();
-        Values filteredValues = new Values();
-        filter.apply(comparator, input, threshold, filteredValues, rejectedValues);
+    public void execute(Tuple tuple) {
+        Values rejectedValues = new Values(), filteredValues = new Values();
+        filter.apply(comparator, tuple, threshold, filteredValues, rejectedValues);
         //for every emitAction
-
+        if (filteredValues.size()!=0) {
+            //above threshold
             for (BoltEmitter em : this.conditionTrueAction) {
                 try {
-                    em.execute(this.collector, em.getStreamId(), filteredValues);
+                    em.execute(this.collector, em.getStreamId(), (Values)tuple.getValues());
                 } catch (FieldsMismatchException e) {
                     e.printStackTrace();
                 }
             }
+        }
+        if (rejectedValues.size()!=0) {
+            //below threshold
             for (BoltEmitter em : this.conditionFalseAction) {
                 try {
-                    em.execute(this.collector, em.getStreamId(), rejectedValues);
+                    em.execute(this.collector, em.getStreamId(), (Values)tuple.getValues());
                 } catch (FieldsMismatchException e) {
                     e.printStackTrace();
                 }
             }
-
+        }
     }
-
-
-
-
 
     /**
      * Returns a filter implementation that will filter each input value from the stream. Returns two lists of Values,
@@ -117,7 +98,7 @@ public class ThresholdBolt extends StreamBisect {
      *
      * @return
      */
-    private void resolveComparator(String className) {
+    protected void resolveComparator(String className) {
         switch (className) {
             case "java.lang.Integer":
                 comparator = new Comparator<Number>() {
@@ -157,17 +138,18 @@ public class ThresholdBolt extends StreamBisect {
         }
     }
 
-    private Filter resolveFilterByOperator() {
+    protected Filter resolveFilterByOperator() {
+        //Here if the value is greater than the threshold the entire tuple gets added to the rejected or accepted values
         switch (operator) {
             case GREATER_THAN:
-                this.filter= new Filter() {
+                 return new Filter() {
                     @Override
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
-                        Number newValue = (Number) input.getValue(0);
+                        Number newValue = (Number) input.getValue(positionInStream);
                         //newValue-threshold > 0
                         if (comparator.compare(newValue, threshold) > 0) {
-                            filteredValues.add(newValue);
-                        } else rejectedValues.add(newValue);
+                            filteredValues.add(input);
+                        } else rejectedValues.add(input);
                     }
                 };
 
@@ -175,11 +157,11 @@ public class ThresholdBolt extends StreamBisect {
                 return new Filter() {
                     @Override
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
-                        Number newValue = (Number) input.getValue(0);
+                        Number newValue = (Number) input.getValue(positionInStream);
                         //newValue-threshold < 0
                         if (comparator.compare(newValue, threshold) < 0) {
-                            filteredValues.add(newValue);
-                        } else rejectedValues.add(newValue);
+                            filteredValues.add(input);
+                        } else rejectedValues.add(input);
                     }
                 };
 
@@ -189,9 +171,9 @@ public class ThresholdBolt extends StreamBisect {
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                         Number newValue = (Number) input.getValue(0);
                         //equality
-                        if (comparator.compare(newValue, threshold) == 0) {
-                            filteredValues.add(newValue);
-                        } else rejectedValues.add(newValue);
+                        if (comparator.compare(newValue, threshold) == positionInStream) {
+                            filteredValues.add(input);
+                        } else rejectedValues.add(input);
                     }
                 };
 
@@ -199,17 +181,16 @@ public class ThresholdBolt extends StreamBisect {
                 return new Filter() {
                     @Override
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
-                        Number newValue = (Number) input.getValue(0);
+                        Number newValue = (Number) input.getValue(positionInStream);
                         //inequality
                         if (comparator.compare(newValue, threshold) != 0) {
-                            filteredValues.add(newValue);
-                        } else rejectedValues.add(newValue);
+                            filteredValues.add(input);
+                        } else rejectedValues.add(input);
                     }
                 };
             default:
                 return null;
         }
     }
-
 
 }

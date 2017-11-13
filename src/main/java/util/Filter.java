@@ -7,6 +7,6 @@ import java.util.Comparator;
 
 public interface Filter {
 
-    public  void apply(Comparator cmp, Tuple input, Number threshold, Values filteredVaues, Values rejectedValues);
+    public  void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues);
 
 }

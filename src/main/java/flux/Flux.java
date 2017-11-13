@@ -53,6 +53,7 @@ public class Flux {
     private static final String OPTION_ENV_FILTER = "env-filter";
     public static final Thread mainThread = Thread.currentThread();
     static volatile boolean keepRunning = true;
+
     public static void main(String[] args) throws Exception {
       Options options = createOptions();
 
