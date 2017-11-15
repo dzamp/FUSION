@@ -5,6 +5,7 @@ import actions.SpoutAction;
 import actions.SpoutEmitter;
 import exceptions.FieldsMismatchException;
 import javafx.util.Pair;
+import org.apache.log4j.Logger;
 import org.apache.storm.shade.org.eclipse.jetty.util.BlockingArrayQueue;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -32,16 +33,11 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback {
     private int qos = 1;
     private String regex = null;
     protected BlockingQueue<Pair<String, MqttMessage>> messageQueue;
-//    private List<SpoutEmitter> emitActions = null;
 
-    //TODO error with strings
-    //ERROR with strings classes!!!
-    public MqttConsumerSpout(String serverURI, String clientId, String topic, String regex, Class... args) {
-        super(serverURI, clientId, topic, regex, args);
-    }
 
     public MqttConsumerSpout(String brokerUrl, String clientId, String topic) {
         super(brokerUrl, clientId, topic);
+        log = Logger.getLogger(this.getClass());
     }
 
 
@@ -92,7 +88,9 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback {
         } catch (MqttException e) {
             e.printStackTrace();
         }
+
     }
+
 
 
     private void closeMqttClientConnection() {

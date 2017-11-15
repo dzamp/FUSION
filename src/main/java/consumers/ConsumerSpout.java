@@ -2,6 +2,8 @@ package consumers;
 
 import actions.Action;
 import actions.SpoutAction;
+import exceptions.EmissionException;
+import org.apache.log4j.Logger;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichSpout;
@@ -22,20 +24,7 @@ public abstract class ConsumerSpout implements IRichSpout {
     protected String regex = null;
     protected Class[] classMap = null;
     protected List<SpoutAction> emitActions = null;
-
-
-    public ConsumerSpout(String serverURI, String clientId, String topic, String regex, Class... args) {
-        this.brokerUrl = serverURI;
-        this.clientId = clientId;
-        this.topic = topic;
-        this.regex = regex;
-        this.classMap = args;
-        this.emitActions = new ArrayList<>();
-    }
-
-//    private List<Class> resolveClasses(String[] args){
-//        if
-//    }
+    protected Logger log ;
 
     public ConsumerSpout(String brokerUrl, String clientId, String topic) {
         this.brokerUrl = brokerUrl;
@@ -49,8 +38,29 @@ public abstract class ConsumerSpout implements IRichSpout {
         this.collector = collector;
         this.configMap = conf;
         this.ctx = context;
+
     }
 
+    protected void checkActions() {
+        //TODO maybe here do some checking on the emitter actions
+        if (emitActions.size() == 1) {
+            SpoutAction action = emitActions.get(0);
+            if (action.getStreamId() != null) {
+                log.info("Default stream forwarding");
+            }
+        } else {
+          for(SpoutAction ac: emitActions){
+              if(ac.getStreamId()==null){
+                  log.error("ConsumerSpout has a default emition registered with many emitters. Only named stream emissions are allowed");
+                  try {
+                      throw new EmissionException("Emission Error, default emmition presend with named ones");
+                  } catch (EmissionException e) {
+                      e.printStackTrace();
+                  }
+              }
+          }
+        }
+    }
 
     public void addEmitAction(SpoutAction action) {
         this.emitActions.add(action);
@@ -72,7 +82,6 @@ public abstract class ConsumerSpout implements IRichSpout {
     public Map<String, Object> getComponentConfiguration() {
         return null;
     }
-
 
 
     @Override
