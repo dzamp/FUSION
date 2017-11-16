@@ -20,7 +20,7 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
     protected String streamId = null;
     protected String[] emittedFields;
 
-    protected List<ClassConverter<?>> converter;
+    protected List<ClassConverter<?>> converters;
 
     public SpoutEmitter(String[] fields, String... classes) {
         this.emittedFields = fields;
@@ -67,16 +67,14 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
     @Override
     public Values mapToValues(String message, String regex, Class[] args) {
         Values values = new Values();
-        for (Class clazz : args) {
             if (regex != null) {
                 String[] stringValues = message.split(regex);
                 for (int i=0; i < stringValues.length; i++) {
-                    values.add(converter.get(i).convertToObject(stringValues[i]));
+                    values.add(converters.get(i).convertToObject(stringValues[i]));
                 }
             } else {
-                values.add(converter.get(0).convertToObject(message));
+                values.add(converters.get(0).convertToObject(message));
             }
-        }
         return values;
     }
 
@@ -87,23 +85,23 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
         if (values != null && values.size() > 0) {
             if (streamId == null) {
                 //direct emit
-                collector.emit(values);
+              collector.emit(values);
             } else {
                 if (values.size() != emittedFields.length) {
                     throw new FieldsMismatchException("Emitted Values do not match with declaration");
                 }
-                collector.emit(streamId, values);
+               collector.emit(streamId, values);
             }
         }
     }
 
 
     private void resolveClassConverters(String[] classes){
-        converter = new ArrayList<>();
+        converters = new ArrayList<>();
         for(String clazz: classes){
             switch (clazz){
                 case "java.lang.Integer":
-                    converter.add(new ClassConverter<Integer>() {
+                    converters.add(new ClassConverter<Integer>() {
                         @Override
                         public Integer convertToObject(String value) {
                             return Integer.valueOf(value);
@@ -111,7 +109,7 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
                     });
                     break;
                 case "java.lang.Double":
-                    converter.add(new ClassConverter<Double>() {
+                    converters.add(new ClassConverter<Double>() {
                         @Override
                         public Double convertToObject(String value) {
                             return Double.valueOf(value);
@@ -119,7 +117,7 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
                     });
                     break;
                 case "java.lang.Float":
-                    converter.add(new ClassConverter<Float>() {
+                    converters.add(new ClassConverter<Float>() {
                         @Override
                         public Float convertToObject( String value) {
                             return Float.valueOf(value);
@@ -127,7 +125,7 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
                     });
                     break;
                 case "java.lang.Long":
-                    converter.add(new ClassConverter<Long>() {
+                    converters.add(new ClassConverter<Long>() {
                         @Override
                         public Long convertToObject(String value) {
                             return Long.valueOf(value);
@@ -135,7 +133,7 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
                     });
                     break;
                 default:
-                    converter.add(new ClassConverter<String>() {
+                    converters.add(new ClassConverter<String>() {
                         @Override
                         public String convertToObject(String value) {
                             return value;

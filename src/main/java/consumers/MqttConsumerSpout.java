@@ -4,7 +4,9 @@ import actions.Action;
 import actions.SpoutAction;
 import actions.SpoutEmitter;
 import exceptions.FieldsMismatchException;
-import javafx.util.Pair;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.apache.storm.shade.org.eclipse.jetty.util.BlockingArrayQueue;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -12,6 +14,7 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.Time;
 import org.eclipse.paho.client.mqttv3.*;
+import org.slf4j.LoggerFactory;
 
 
 import java.util.Map;
@@ -37,7 +40,6 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback {
 
     public MqttConsumerSpout(String brokerUrl, String clientId, String topic) {
         super(brokerUrl, clientId, topic);
-        log = Logger.getLogger(this.getClass());
     }
 
 
@@ -73,13 +75,10 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback {
 
     @Override
     public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-        messageQueue.put(new Pair<>(topic.trim(), mqttMessage));
+        messageQueue.put(new ImmutablePair<>(topic.trim(), mqttMessage));
     }
 
-    @Override
-    public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-        super.open(conf, context, collector);
-        messageQueue = new BlockingArrayQueue<>();
+    protected void setMqttClientConnection(String brokerUrl, String clientId){
         try {
             client = new MqttClient(brokerUrl, clientId+ Time.currentTimeMillis());
             client.connect();
@@ -88,7 +87,14 @@ public class MqttConsumerSpout extends ConsumerSpout implements MqttCallback {
         } catch (MqttException e) {
             e.printStackTrace();
         }
+    }
 
+    @Override
+    public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+        super.open(conf, context, collector);
+        messageQueue = new BlockingArrayQueue<>();
+        log = Logger.getLogger(this.getClass());
+        setMqttClientConnection(this.brokerUrl,this.clientId);
     }
 
 
