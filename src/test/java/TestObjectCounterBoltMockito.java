@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 public class TestObjectCounterBoltMockito  {
 
 
+
     @Test
     public void testCounterBolt() {
         System.out.println("TestObjectCounterBoltMockito.testCounterBolt");
@@ -63,7 +64,6 @@ public class TestObjectCounterBoltMockito  {
 // e(new Fields("id","anotherString","value")));
         bolt.declareOutputFields(declarer);
         bolt.execute(t);
-
 
 
     }

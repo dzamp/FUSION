@@ -5,6 +5,7 @@ config:
 
 
 components:
+
   - id: "spout-count-emitter"
     className: "actions.SpoutEmitter"
     constructorArgs:
@@ -25,7 +26,6 @@ components:
 #    className: "actions.BoltEmittertter constructorArgs:
 #      - "under"
 #      - ["bNumber"]
-
 
 # spout definitions
 spouts:
@@ -78,6 +78,7 @@ streams:
       streamId: "intStreamId2"
       type: SHUFFLE
 
+#streams:
 #  - name: "bolt-1 --> bolt-3"
 #    from: "bolt-1"
 #    to: "bolt-3"
