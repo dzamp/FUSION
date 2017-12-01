@@ -80,7 +80,8 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
 
 
     @Override
-    public void execute(SpoutOutputCollector collector, String streamId, String message) throws FieldsMismatchException {
+    public void execute(SpoutOutputCollector collector, String streamId, String message)
+            throws FieldsMismatchException {
         Values values = mapToValues(message, regex, this.classes.toArray(new Class[0]));
         if (values != null && values.size() > 0) {
             if (streamId == null) {
@@ -101,44 +102,19 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
         for(String clazz: classes){
             switch (clazz){
                 case "java.lang.Integer":
-                    converters.add(new ClassConverter<Integer>() {
-                        @Override
-                        public Integer convertToObject(String value) {
-                            return Integer.valueOf(value);
-                        }
-                    });
+                    converters.add((ClassConverter<Integer>) Integer::valueOf);
                     break;
                 case "java.lang.Double":
-                    converters.add(new ClassConverter<Double>() {
-                        @Override
-                        public Double convertToObject(String value) {
-                            return Double.valueOf(value);
-                        }
-                    });
+                    converters.add((ClassConverter<Double>) Double::valueOf);
                     break;
                 case "java.lang.Float":
-                    converters.add(new ClassConverter<Float>() {
-                        @Override
-                        public Float convertToObject( String value) {
-                            return Float.valueOf(value);
-                        }
-                    });
+                    converters.add((ClassConverter<Float>) Float::valueOf);
                     break;
                 case "java.lang.Long":
-                    converters.add(new ClassConverter<Long>() {
-                        @Override
-                        public Long convertToObject(String value) {
-                            return Long.valueOf(value);
-                        }
-                    });
+                    converters.add((ClassConverter<Long>) Long::valueOf);
                     break;
                 default:
-                    converters.add(new ClassConverter<String>() {
-                        @Override
-                        public String convertToObject(String value) {
-                            return value;
-                        }
-                    });
+                    converters.add((ClassConverter<String>) value -> value);
             }
         }
 
