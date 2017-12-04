@@ -68,20 +68,20 @@ public abstract class StreamBisect implements IRichBolt {
     }
 
     public void emitValues(Values filteredValues, Values rejectedValues) {
-        for (BoltEmitter em : this.conditionTrueAction) {
+        this.conditionTrueAction.forEach(em -> {
             try {
                 em.execute(this.collector, em.getStreamId(), filteredValues);
             } catch (FieldsMismatchException e) {
                 e.printStackTrace();
             }
-        }
-        for (BoltEmitter em : this.conditionFalseAction) {
+        });
+        this.conditionFalseAction.forEach(em -> {
             try {
                 em.execute(this.collector, em.getStreamId(), rejectedValues);
             } catch (FieldsMismatchException e) {
                 e.printStackTrace();
             }
-        }
+        });
 
     }
 

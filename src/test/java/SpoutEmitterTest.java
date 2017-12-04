@@ -10,7 +10,7 @@ import static org.junit.Assert.assertArrayEquals;
 /**
  * Created by jim on 16/11/2017.
  */
-public class SpoutEmitterTest {
+public class  SpoutEmitterTest {
     @Test
     public void checkClassConverters() {
         //Check that class names of String are being mapped correctly to the equivalent Class objects

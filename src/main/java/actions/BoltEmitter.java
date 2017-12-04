@@ -32,17 +32,17 @@ public class BoltEmitter implements BoltAction, Serializable{
 
     @Override
     public void execute(OutputCollector collector, String streamId, Values values) throws FieldsMismatchException {
-        List<Integer> list;
+//        List<Integer> list;
         if (values != null && values.size() > 0) {
             if(streamId == null) {
                 //direct emit
-                list = collector.emit(values);
+               collector.emit(values);
             }
             else {
                 if(values.size() != fields.length){
                     throw new FieldsMismatchException("Emitted Values do not match with declaration");
                 }
-               list=  collector.emit(streamId, values);
+//               list=  collector.emit(streamId, values);
             }
         }
     }
