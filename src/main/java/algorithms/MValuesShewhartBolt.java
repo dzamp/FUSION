@@ -17,16 +17,16 @@ import java.util.Map;
 
 public class MValuesShewhartBolt extends GenericBolt {
     //TODO works for doubles only?
-    private ShewHartState previousState;
+    protected ShewHartState previousState;
     //position on which the shewhard algorithm will be applied
-    private int positionInStream = 0;
-    private double kplus = 3;
-    private double kminus = 3;
+    protected int positionInStream = 0;
+    protected double kplus = 3;
+    protected double kminus = 3;
 
     //TODO what should time be? A timestamp in the stream?
-    private int maxWindow = 200;
-    private int n = 2;
-    PrintWriter writer ;
+    protected int maxWindow = 200;
+    protected int n = 2;
+
 
     //TODO export this in config method??
     public MValuesShewhartBolt(int positionInStream, double kplus, double kminus, double initialMean, double initialVariance, int maxWindow) {
@@ -63,28 +63,12 @@ public class MValuesShewhartBolt extends GenericBolt {
 
         if (value > UCL || value < LCL) {
             emit(new Values(input, 1));
-            writer.print(">>>");
         } else emit(new Values(input, 0));
 
-
-        writer.println("Current value: " + value + " mean: " + curr_mean + " variance: "
-                + curr_Variance + " UCL: " + UCL + " LCL: " + LCL );
         n++;
-        if (n == maxWindow)
+        if (n == maxWindow + 2)
             n = 2; //reset the window
         this.previousState.nextState(curr_mean, curr_Variance);
-    }
-
-    @Override
-    public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
-        super.prepare(map, topologyContext, outputCollector);
-        try {
-            writer = new PrintWriter("shewhartTest" + Time.currentTimeMillis(), "UTF-8");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -107,7 +91,7 @@ public class MValuesShewhartBolt extends GenericBolt {
         }
     }
 
-    private class ShewHartState {
+    protected  class ShewHartState {
         //TODO could those be NUmbers?
         private double mean;
         private double variance;

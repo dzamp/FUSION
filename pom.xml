@@ -13,8 +13,18 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.version>1.1.0</project.version>
+        <jayes.version>1.100.0</jayes.version>
         <!--<provided.scope>provided</provided.scope>-->
     </properties>
+
+
+    <repositories>
+        <repository>
+            <id>recommenders</id>
+            <url>https://repo.eclipse.org/content/repositories/recommenders/</url>
+        </repository>
+    </repositories>
+
 
     <dependencies>
         <dependency>
@@ -82,11 +92,11 @@
             <artifactId>multilang-python</artifactId>
             <version>1.1.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>slf4j-api</artifactId>-->
+            <!--<version>1.7.5</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
@@ -162,6 +172,24 @@
                 </exclusion>
             </exclusions>
 
+        </dependency>
+
+
+        <!--Jayes Dependencies-->
+        <dependency>
+            <groupId>org.eclipse.recommenders</groupId>
+            <artifactId>org.eclipse.recommenders.jayes</artifactId>
+            <version>${jayes.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.recommenders</groupId>
+            <artifactId>org.eclipse.recommenders.jayes.io</artifactId>
+            <version>${jayes.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.recommenders</groupId>
+            <artifactId>org.eclipse.recommenders.jayes.transformation</artifactId>
+            <version>${jayes.version}</version>
         </dependency>
 
     </dependencies>
