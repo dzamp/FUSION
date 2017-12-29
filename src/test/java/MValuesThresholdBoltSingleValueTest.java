@@ -4,8 +4,7 @@ import algorithms.MValuesThresholdBolt;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Test;
-import org.junit.runners.Suite;
-import util.Filter;
+import util.FilterOperation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -19,23 +18,23 @@ public class MValuesThresholdBoltSingleValueTest {
         public _MValuesThresholdBolt(String className, Number threshold, int positionInStream, String operator) {
             super(className, threshold, positionInStream, operator);
             this.resolveComparator(className);
-            this.filter = resolveFilterByOperator();
+            this.filterOperation = resolveFilterByOperator();
         }
 
 
         public int mockExecute() {
             this.acceptedValues = new Values();
             this.rejectedValues = new Values();
-            this.filter.apply(super.comparator, null, threshold, acceptedValues, rejectedValues);
+            this.filterOperation.apply(super.comparator, null, threshold, acceptedValues, rejectedValues);
             if (acceptedValues.size() != 0) return 1;
             else return 0;
         }
 
         @Override
-        protected Filter resolveFilterByOperator() {
+        protected FilterOperation resolveFilterByOperator() {
             switch (operator) {
                 case GREATER_THAN:
-                    return new Filter() {
+                    return new FilterOperation() {
                         @Override
                         public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                             //newValue-threshold > 0
@@ -46,7 +45,7 @@ public class MValuesThresholdBoltSingleValueTest {
                     };
 
                 case LESS_THAN:
-                    return new Filter() {
+                    return new FilterOperation() {
                         @Override
                         public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                             //newValue-threshold < 0
@@ -57,7 +56,7 @@ public class MValuesThresholdBoltSingleValueTest {
                     };
 
                 case EQUAL:
-                    return new Filter() {
+                    return new FilterOperation() {
                         @Override
                         public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                             //equality
@@ -68,7 +67,7 @@ public class MValuesThresholdBoltSingleValueTest {
                     };
 
                 case NOT_EQUAL:
-                    return new Filter() {
+                    return new FilterOperation() {
                         @Override
                         public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                             //inequality

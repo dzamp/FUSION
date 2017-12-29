@@ -1,10 +1,9 @@
 package algorithms;
 
 import actions.BoltEmitter;
-import actions.Action;
 import exceptions.FieldsMismatchException;
 import flow.StreamBisect;
-import util.Filter;
+import util.FilterOperation;
 import util.Operator;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -29,7 +28,7 @@ import java.util.*;
  * This perplexes things more.
  * <p>
  * After that we will need to create a clever way to define a number of actions that can happen whenever the criterion are being met.
- * Perhaps someone would like to filter certain values and guide them through another queue
+ * Perhaps someone would like to filterOperation certain values and guide them through another queue
  * or someone might want to keep those values
  * or send an alarm somewhere else
  * Solution 1: we can create extra bolts that do that. But splitting the flow is not covered
@@ -46,9 +45,9 @@ public class ThresholdBolt extends StreamBisect {
      */
     protected Comparator<Number> comparator;
     /**
-     * The filter that will implement the comparison
+     * The filterOperation that will implement the comparison
      */
-    protected Filter filter;
+    protected FilterOperation filterOperation;
     /**
      * Operator containing the options available( gt - greater than, lt - less than , eq - equal, neq - not equal)
      */
@@ -73,7 +72,7 @@ public class ThresholdBolt extends StreamBisect {
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         super.prepare(stormConf, context, collector);
         resolveComparator(clazz.getName());
-        this.filter = resolveFilterByOperator();
+        this.filterOperation = resolveFilterByOperator();
     }
 
 
@@ -87,7 +86,7 @@ public class ThresholdBolt extends StreamBisect {
         //do appropriate action according to the Operator.
         Values rejectedValues = new Values();
         Values filteredValues = new Values();
-        filter.apply(comparator, input, threshold, filteredValues, rejectedValues);
+        filterOperation.apply(comparator, input, threshold, filteredValues, rejectedValues);
         //for every emitAction
 
             for (BoltEmitter em : this.conditionTrueAction) {
@@ -112,7 +111,7 @@ public class ThresholdBolt extends StreamBisect {
 
 
     /**
-     * Returns a filter implementation that will filter each input value from the stream. Returns two lists of Values,
+     * Returns a filterOperation implementation that will filterOperation each input value from the stream. Returns two lists of Values,
      * the accepted ones(i.e. the ones that smash the threshold) and the rejected ones(i.e. the ones who dont)
      *
      * @return
@@ -157,10 +156,10 @@ public class ThresholdBolt extends StreamBisect {
         }
     }
 
-    private Filter resolveFilterByOperator() {
+    private FilterOperation resolveFilterByOperator() {
         switch (operator) {
             case GREATER_THAN:
-                this.filter= new Filter() {
+                this.filterOperation = new FilterOperation() {
                     @Override
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                         Number newValue = (Number) input.getValue(0);
@@ -172,7 +171,7 @@ public class ThresholdBolt extends StreamBisect {
                 };
 
             case LESS_THAN:
-                return new Filter() {
+                return new FilterOperation() {
                     @Override
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                         Number newValue = (Number) input.getValue(0);
@@ -184,7 +183,7 @@ public class ThresholdBolt extends StreamBisect {
                 };
 
             case EQUAL:
-                return new Filter() {
+                return new FilterOperation() {
                     @Override
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                         Number newValue = (Number) input.getValue(0);
@@ -196,7 +195,7 @@ public class ThresholdBolt extends StreamBisect {
                 };
 
             case NOT_EQUAL:
-                return new Filter() {
+                return new FilterOperation() {
                     @Override
                     public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
                         Number newValue = (Number) input.getValue(0);

@@ -345,7 +345,7 @@
                 <!--<configuration>-->
                     <!--<createDependencyReducedPom>true</createDependencyReducedPom>-->
                     <!--<filters>-->
-                        <!--<filter>-->
+                        <!--<filterOperation>-->
                             <!--<artifact>*:*</artifact>-->
                             <!--<excludes>-->
                                 <!--<exclude>META-INF/*.SF</exclude>-->
@@ -359,7 +359,7 @@
                                 <!--<exclude>META-INF/MSFTSIG.SF</exclude>-->
                                 <!--<exclude>META-INF/MSFTSIG.RSA</exclude>-->
                             <!--</excludes>-->
-                        <!--</filter>-->
+                        <!--</filterOperation>-->
                     <!--</filters>-->
                 <!--</configuration>-->
                 <!--<executions>-->

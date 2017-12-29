@@ -50,7 +50,7 @@ public class Flux {
     private static final String OPTION_INACTIVE = "inactive";
     private static final String OPTION_ZOOKEEPER = "zookeeper";
     private static final String OPTION_FILTER = "filter";
-    private static final String OPTION_ENV_FILTER = "env-filter";
+    private static final String OPTION_ENV_FILTER = "env-filterOperation";
     public static final Thread mainThread = Thread.currentThread();
     static volatile boolean keepRunning = true;
 

@@ -14,7 +14,7 @@ public class FilePrinter implements BoltAction {
 
     public FilePrinter(String filename) {
         try {
-            writer = new PrintWriter("shewhartTest" + Time.currentTimeMillis(), "UTF-8");
+            writer = new PrintWriter("joinBoltTest" + Time.currentTimeMillis(), "UTF-8");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {

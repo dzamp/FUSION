@@ -12,14 +12,16 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ShewhartBoltTest extends StormTestCase {
 
     public class MValuesShewhartBoltTest extends MValuesShewhartBolt {
+        public int alarmInstances = 0;
         private PrintWriter writer;
-        public int alarmInstances=0;
+
         private void setWriter(String fileName) {
             try {
                 writer = new PrintWriter(fileName + Time.currentTimeMillis(), "UTF-8");
@@ -29,7 +31,8 @@ public class ShewhartBoltTest extends StormTestCase {
                 e.printStackTrace();
             }
         }
-        public MValuesShewhartBoltTest(String filename,int positionInStream, double kplus, double kminus, double initialMean, double initialVariance, int maxWindow) {
+
+        public MValuesShewhartBoltTest(String filename, int positionInStream, double kplus, double kminus, double initialMean, double initialVariance, int maxWindow) {
             super(positionInStream, kplus, kminus, initialMean, initialVariance, maxWindow);
             setWriter(filename);
         }
@@ -42,10 +45,10 @@ public class ShewhartBoltTest extends StormTestCase {
         @Override
         public void execute(Tuple input) {
             double value = input.getDouble(positionInStream);
-            double curr_mean = previousState.getMean()+ ((1.0 / n) * (value - previousState.getMean()));
+            double curr_mean = previousState.getMean() + ((1.0 / n) * (value - previousState.getMean()));
             double curr_Variance = Math.sqrt(
                     (1.0 / n) * (
-                            ( (n - 1.0) * Math.pow(previousState.getVariance(), 2))
+                            ((n - 1.0) * Math.pow(previousState.getVariance(), 2))
                                     + ((value - previousState.getMean()) * (value - curr_mean))
                     )
             );
@@ -56,7 +59,7 @@ public class ShewhartBoltTest extends StormTestCase {
             if (value > UCL || value < LCL) {
                 emit(new Values(input, 1));
                 writer.println("Current value: " + value + " mean: " + curr_mean + " variance: "
-                        + curr_Variance + " UCL: " + UCL + " LCL: " + LCL + " shewhart: " + 1 );
+                        + curr_Variance + " UCL: " + UCL + " LCL: " + LCL + " shewhart: " + 1);
                 alarmInstances++;
             } else {
                 emit(new Values(input, 0));
@@ -72,7 +75,7 @@ public class ShewhartBoltTest extends StormTestCase {
 
     @Test
     public void testHewhartBoltWithK3() {
-        MValuesShewhartBoltTest shewhartBolt = new MValuesShewhartBoltTest("shewhartTestK3",0,3,3,500);
+        MValuesShewhartBoltTest shewhartBolt = new MValuesShewhartBoltTest("shewhartTestK3", 0, 3, 3, 500);
         final OutputCollector collector = mock(OutputCollector.class);
         Map config = new HashMap();
         shewhartBolt.prepare(config, null, collector);
@@ -80,18 +83,19 @@ public class ShewhartBoltTest extends StormTestCase {
 
         when(t.getDouble(0)).thenAnswer(new Answer() {
             private int count = 0;
+
             public Object answer(InvocationOnMock invocation) {
                 //every 100 values emit a large value and every 30 values a small one
                 count++;
-                if(count % 100 == 0)
+                if (count % 100 == 0)
                     return 15000.0;
-                if(count % 30 == 0)
+                if (count % 30 == 0)
                     return -5000.0;
                 return (10000 * Math.random());
             }
         });
         int N = 10000;
-        for(int i=0; i<N; i++){
+        for (int i = 0; i < N; i++) {
             shewhartBolt.execute(t);
         }
 //        StringBuilder builder = new StringBuilder("Alarm incidents were " + shewhartBolt.alarmInstances + " over " + N + " for k = 3. " +
@@ -101,7 +105,7 @@ public class ShewhartBoltTest extends StormTestCase {
 
     @Test
     public void testHewhartBoltWithK2() {
-        MValuesShewhartBoltTest shewhartBolt = new MValuesShewhartBoltTest("shewhartTestK2",0,2,2,500);
+        MValuesShewhartBoltTest shewhartBolt = new MValuesShewhartBoltTest("shewhartTestK2", 0, 2, 2, 500);
         final OutputCollector collector = mock(OutputCollector.class);
         Map config = new HashMap();
         shewhartBolt.prepare(config, null, collector);
@@ -109,13 +113,14 @@ public class ShewhartBoltTest extends StormTestCase {
 
         when(t.getDouble(0)).thenAnswer(new Answer() {
             private int count = 0;
+
             public Object answer(InvocationOnMock invocation) {
                 //every 100 values emit a large value and every 30 values a small one
                 return (10000 * Math.random());
             }
         });
         int N = 10000;
-        for(int i=0; i<N; i++){
+        for (int i = 0; i < N; i++) {
             shewhartBolt.execute(t);
         }
 //        StringBuilder builder = new StringBuilder("Alarm incidents were " + shewhartBolt.alarmInstances + " over " + N + " for k = 3. " +
