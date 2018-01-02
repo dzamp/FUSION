@@ -7,6 +7,9 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
 
+import java.util.List;
+import java.util.Map;
+
 
 public class ShewhartAgorithm implements IWindowedAlgorithm {
 
@@ -22,8 +25,8 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
     protected int maxWindow = 200;
     protected BaseWindowedBolt.Duration duration;
     protected BaseWindowedBolt.Duration lag;
-    private String timestampField = "";
-
+    protected String timestampField = "";
+    protected Map<String, Map<String, List<String>>> inputFieldsFromSources;
 
     public ShewhartAgorithm() {
         this.previousState = new ShewHartState();
@@ -120,6 +123,11 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
     @Override
     public String getTimestampField() {
         return this.timestampField;
+    }
+
+    @Override
+    public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources) {
+        this.inputFieldsFromSources = inputFieldsFromSources;
     }
 
     public ShewhartAgorithm withTimestampField(String fieldName){

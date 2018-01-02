@@ -32,14 +32,14 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
         if (!this.algorithm.getTimestampField().isEmpty())  super.withTimestampField(this.algorithm.getTimestampField());
         if (this.algorithm.getWindowCount() > 0) super.withWindow(Count.of(this.algorithm.getWindowCount()));
         if (this.algorithm.getWindowDuration() != null) super.withWindow(this.algorithm.getWindowDuration());
-
         return this;
     }
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         super.prepare(stormConf, context, collector);
-        this.topologyContext = topologyContext;
+        this.topologyContext = context;
+        this.algorithm.setInputSources(context.getThisInputFields());
         this.collector = collector;
         this.configMap = stormConf;
         this.actions = new ArrayList<>();

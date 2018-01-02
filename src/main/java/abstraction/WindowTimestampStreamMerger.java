@@ -5,7 +5,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by jim on 29/12/2017.
@@ -18,6 +18,11 @@ public class WindowTimestampStreamMerger implements IWindowedAlgorithm {
     private BaseWindowedBolt.Duration lag;
     protected String timestampField = "";
 
+    protected Map<String,Map<String,List<String>>>  inputFieldsFromSources;
+
+    public void setInputSources(Map<String,Map<String,List<String>>>  inputFieldsFromSources){
+        this.inputFieldsFromSources = inputFieldsFromSources;
+    }
 
     public WindowTimestampStreamMerger withSecondsLag(int seconds){
         this.lag = BaseWindowedBolt.Duration.seconds(seconds);
@@ -59,9 +64,22 @@ public class WindowTimestampStreamMerger implements IWindowedAlgorithm {
         return this;
     }
 
+
     @Override
     public Values executeWindowedAlgorithm(TupleWindow tupleWindow) {
-        return new Values(tupleWindow);
+        Map<String,List<Values>> streamValues = new HashMap<>();
+
+        Set<String> streams = inputFieldsFromSources.keySet();
+        streams.forEach(stream -> streamValues.put(stream,new ArrayList<>()));
+
+
+        for(Tuple tuple: tupleWindow.get()){
+            String streamName = tuple.getSourceComponent();
+            Values vals = new Values(tuple.getValues());
+            streamValues.get(tuple.getSourceComponent()).add(new Values(tuple.getValues()));
+        }
+        tupleWindow.get().forEach(tuple -> streamValues.get(tuple.getSourceComponent()).add(new Values(tuple.getValues())));
+        return new Values(streamValues);
     }
 
     @Override
