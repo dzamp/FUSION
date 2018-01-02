@@ -1,6 +1,6 @@
 package filter;
 
-import abstraction.Filter;
+import abstraction.ValueFilter;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Test;
@@ -16,7 +16,7 @@ public class FloatFilterTestCase {
 
     @Test
     public void testGreaterThan(){
-        Filter greatherThanFilter = new Filter().withOperator("gt").withThreshold(100.0,classname).onPosition(2).build();
+        ValueFilter greatherThanFilter = new ValueFilter().withOperator("gt").withThreshold(100.0,classname).onPosition(2).build();
         Tuple t  = mock(Tuple.class);
         //Assert value less than threshold, values should be null
         when(t.getValue(2)).thenReturn(50.0);
@@ -31,7 +31,7 @@ public class FloatFilterTestCase {
 
     @Test
     public void testLessThan(){
-        Filter greatherThanFilter = new Filter().withOperator("lt").withThreshold(100.0,classname).onPosition(2).build();
+        ValueFilter greatherThanFilter = new ValueFilter().withOperator("lt").withThreshold(100.0,classname).onPosition(2).build();
         Tuple t  = mock(Tuple.class);
         //Assert value greater than threshold, values should not be null
         when(t.getValue(2)).thenReturn(500.0);
@@ -46,7 +46,7 @@ public class FloatFilterTestCase {
 
     @Test
     public void testEqual(){
-        Filter greatherThanFilter = new Filter().withOperator("eq").withThreshold(100.0,classname).onPosition(2).build();
+        ValueFilter greatherThanFilter = new ValueFilter().withOperator("eq").withThreshold(100.0,classname).onPosition(2).build();
         Tuple t  = mock(Tuple.class);
         //Assert value less than threshold, values should be null
         when(t.getValue(2)).thenReturn(50.0);
@@ -61,7 +61,7 @@ public class FloatFilterTestCase {
 
     @Test
     public void testNotEqual(){
-        Filter greatherThanFilter = new Filter().withOperator("neq").withThreshold(100,classname).onPosition(2).build();
+        ValueFilter greatherThanFilter = new ValueFilter().withOperator("neq").withThreshold(100,classname).onPosition(2).build();
         Tuple t  = mock(Tuple.class);
         //Assert value less than threshold, values should not be null
         when(t.getValue(2)).thenReturn(100.0);

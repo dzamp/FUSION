@@ -8,4 +8,6 @@ public interface IWindowedAlgorithm {
     Values executeWindowedAlgorithm(TupleWindow tupleWindow);
     int getWindowCount();
     BaseWindowedBolt.Duration getWindowDuration();
+    BaseWindowedBolt.Duration getWindowLag();
+    String getTimestampField();
 }

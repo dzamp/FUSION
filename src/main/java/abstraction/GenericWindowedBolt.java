@@ -4,13 +4,10 @@ import actions.BoltEmitter;
 import exceptions.FieldsMismatchException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IWindowedBolt;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseWindowedBolt;
 import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.apache.storm.windowing.TimestampExtractor;
 import org.apache.storm.windowing.TupleWindow;
 
 import java.util.ArrayList;
@@ -24,7 +21,7 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
     protected Map configMap;
     protected List<BoltEmitter> actions;
     protected IWindowedAlgorithm algorithm;
-
+    protected OutputFieldsDeclarer declarer;
 
     //    public GenericWindowedBolt() {
 //        super();
@@ -32,8 +29,10 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
 
     public GenericWindowedBolt withAlgorithm(IWindowedAlgorithm algo) {
         this.algorithm = algo;
-        if(this.algorithm.getWindowCount()>0) super.withWindow(Count.of(this.algorithm.getWindowCount()));
-        else if(this.algorithm.getWindowDuration()!=null) super.withWindow(this.algorithm.getWindowDuration());
+        if (!this.algorithm.getTimestampField().isEmpty())  super.withTimestampField(this.algorithm.getTimestampField());
+        if (this.algorithm.getWindowCount() > 0) super.withWindow(Count.of(this.algorithm.getWindowCount()));
+        if (this.algorithm.getWindowDuration() != null) super.withWindow(this.algorithm.getWindowDuration());
+
         return this;
     }
 
@@ -71,11 +70,12 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        this.declarer = declarer;
         if (this.actions.size() == 1) {
             if (this.actions.get(0).getStreamId() == null)
-                declarer.declare(new Fields(this.actions.get(0).getEmittedFields()));
+                this.declarer.declare(new Fields(this.actions.get(0).getEmittedFields()));
         } else {
-            actions.forEach(boltEmitter -> declarer.declareStream(boltEmitter.getStreamId(), new Fields(boltEmitter.getEmittedFields())));
+            actions.forEach(boltEmitter -> this.declarer.declareStream(boltEmitter.getStreamId(), new Fields(boltEmitter.getEmittedFields())));
         }
     }
 

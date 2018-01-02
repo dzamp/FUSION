@@ -21,8 +21,8 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
     //TODO what should time be? A timestamp in the stream?
     protected int maxWindow = 200;
     protected BaseWindowedBolt.Duration duration;
-
-
+    protected BaseWindowedBolt.Duration lag;
+    private String timestampField = "";
 
 
     public ShewhartAgorithm() {
@@ -65,10 +65,17 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
         return this;
     }
 
+    public ShewhartAgorithm withWindowMinDuration(int minutes) {
+        this.duration = BaseWindowedBolt.Duration.minutes(minutes);
+        this.maxWindow = -1; //means this window doesnt care about count, only duration
+        return this;
+    }
+
+
     @Override
     public Values executeWindowedAlgorithm(TupleWindow tupleWindow) {
         int outcome = 0;
-        int n = tupleWindow.get().size();
+        int n = tupleWindow.getNew().size();
         for (Tuple input : tupleWindow.getNew()) {
             double value = (double) (positionInStream == -1 ? (double) input.getValueByField(this.fieldInStream) : input.getDouble(positionInStream));
             double curr_mean = previousState.mean + ((1.0 / n) * (value - previousState.mean));
@@ -85,6 +92,9 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
             //TODO should I return which boundary has been breached? UCL or LCL
             if (value > UCL || value < LCL) {
                 outcome = 1;
+                //TODO here we need to send all values
+                //insert break?
+                break;
             } else outcome = 0;
         }
         return new Values(tupleWindow.get(),outcome);
@@ -99,6 +109,22 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
     @Override
     public BaseWindowedBolt.Duration getWindowDuration() {
         return this.duration;
+    }
+
+    @Override
+    public BaseWindowedBolt.Duration getWindowLag() {
+        return null;
+    }
+
+
+    @Override
+    public String getTimestampField() {
+        return this.timestampField;
+    }
+
+    public ShewhartAgorithm withTimestampField(String fieldName){
+        this.timestampField = fieldName;
+        return this;
     }
 
     public ShewhartAgorithm withKminus(int kminus) {

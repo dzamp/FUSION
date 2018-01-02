@@ -7,7 +7,7 @@ import util.Operator;
 
 import java.util.Comparator;
 
-public class Filter  /*extends GenericBolt*/ implements IAlgorithm {
+public class ValueFilter  /*extends GenericBolt*/ implements IAlgorithm {
 
     protected Number threshold;
     protected Class clazz;
@@ -42,7 +42,7 @@ public class Filter  /*extends GenericBolt*/ implements IAlgorithm {
      *                         Constructor to create the MValuesThresholdBolt that will apply thresholding to the values of the stream. The stream has N values meaning that in any incoming tuple
      *                         there are multiple objects.
      */
-    public Filter(String className,Number threshold, int positionInStream, String operator){
+    public ValueFilter(String className, Number threshold, int positionInStream, String operator){
         super();
         try {
             this.clazz = Class.forName(className);
@@ -54,34 +54,34 @@ public class Filter  /*extends GenericBolt*/ implements IAlgorithm {
         this.operator = Operator.select(operator);
     }
 
-    public Filter build(){
+    public ValueFilter build(){
         resolveComparator(clazz.getName());
         this.filterOperation = resolveFilterByOperator();
         return this;
     }
 
-    public Filter() {
+    public ValueFilter() {
         super();
     }
 
-    public Filter withOperator(String operator){
+    public ValueFilter withOperator(String operator){
         this.operator= Operator.select(operator);
         return this;
     }
 
-    public Filter onPosition(int positionInStream){
+    public ValueFilter onPosition(int positionInStream){
         this.fieldInStream = "";
         this.positionInStream = positionInStream;
         return this;
     }
 
-    public Filter withFieldInStream(String fieldLabel){
+    public ValueFilter withFieldInStream(String fieldLabel){
         this.positionInStream = -1;
         this.fieldInStream = fieldLabel;
         return this;
     }
 
-    public Filter withThreshold(Number threshold, String className){
+    public ValueFilter withThreshold(Number threshold, String className){
         try {
             this.clazz = Class.forName(className);
         } catch (ClassNotFoundException e) {

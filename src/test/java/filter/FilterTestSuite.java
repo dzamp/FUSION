@@ -8,7 +8,8 @@ import org.junit.runners.Suite;
         DoubleFilterTestCase.class,
         FloatFilterTestCase.class,
         IntegerFilterTestCase.class,
-        LongFilterTestCase.class
+        LongFilterTestCase.class,
+        FieldFilterTestCase.class
 })
 public class FilterTestSuite {
 }

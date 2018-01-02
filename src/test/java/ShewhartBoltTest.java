@@ -75,7 +75,7 @@ public class ShewhartBoltTest extends StormTestCase {
 
     @Test
     public void testHewhartBoltWithK3() {
-        MValuesShewhartBoltTest shewhartBolt = new MValuesShewhartBoltTest("shewhartTestK3", 0, 3, 3, 500);
+        MValuesShewhartBoltTest shewhartBolt = new MValuesShewhartBoltTest("shewhartTestK3", 0, 3, 3, 10);
         final OutputCollector collector = mock(OutputCollector.class);
         Map config = new HashMap();
         shewhartBolt.prepare(config, null, collector);
@@ -88,9 +88,9 @@ public class ShewhartBoltTest extends StormTestCase {
                 //every 100 values emit a large value and every 30 values a small one
                 count++;
                 if (count % 100 == 0)
-                    return 15000.0;
+                    return 19000.0;
                 if (count % 30 == 0)
-                    return -5000.0;
+                    return -9000.0;
                 return (10000 * Math.random());
             }
         });
