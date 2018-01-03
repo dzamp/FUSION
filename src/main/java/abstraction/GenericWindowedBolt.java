@@ -29,9 +29,6 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
 
     public GenericWindowedBolt withAlgorithm(IWindowedAlgorithm algo) {
         this.algorithm = algo;
-        if (!this.algorithm.getTimestampField().isEmpty())  super.withTimestampField(this.algorithm.getTimestampField());
-        if (this.algorithm.getWindowCount() > 0) super.withWindow(Count.of(this.algorithm.getWindowCount()));
-        if (this.algorithm.getWindowDuration() != null) super.withWindow(this.algorithm.getWindowDuration());
         return this;
     }
 

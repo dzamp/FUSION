@@ -22,26 +22,21 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
 
 
     //TODO what should time be? A timestamp in the stream?
-    protected int maxWindow = 200;
-    protected BaseWindowedBolt.Duration duration;
-    protected BaseWindowedBolt.Duration lag;
-    protected String timestampField = "";
     protected Map<String, Map<String, List<String>>> inputFieldsFromSources;
+
+    protected boolean emitEntireWindow = false;
+    //TODO what about timestamp? if this algorithm emits many values it cannot be combined with a timestamp merger
+
 
     public ShewhartAgorithm() {
         this.previousState = new ShewHartState();
     }
 
-    public ShewhartAgorithm(double initialMean, double initialVariance ) {
-        this.previousState = new ShewHartState(initialMean,initialVariance);
+    public ShewhartAgorithm(double initialMean, double initialVariance) {
+        this.previousState = new ShewHartState(initialMean, initialVariance);
     }
 
 
-    public ShewhartAgorithm withWindowCount(int count) {
-        this.maxWindow = count;
-        this.duration = null; //no duration
-        return this;
-    }
 
     public ShewhartAgorithm withPositionInStream(int position) {
         this.positionInStream = position;
@@ -55,31 +50,19 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
         return this;
     }
 
-    public ShewhartAgorithm withWindowSecDuration(int seconds) {
-        this.duration = BaseWindowedBolt.Duration.seconds(seconds);
-        this.maxWindow = -1; //means this window doesnt care about count, only duration
+
+    public ShewhartAgorithm emitEntireWindow(boolean value){
+        this.emitEntireWindow = value;
         return this;
     }
-
-
-    public ShewhartAgorithm withWindowHoursDuration(int hours) {
-        this.duration = BaseWindowedBolt.Duration.hours(hours);
-        this.maxWindow = -1; //means this window doesnt care about count, only duration
-        return this;
-    }
-
-    public ShewhartAgorithm withWindowMinDuration(int minutes) {
-        this.duration = BaseWindowedBolt.Duration.minutes(minutes);
-        this.maxWindow = -1; //means this window doesnt care about count, only duration
-        return this;
-    }
-
 
     @Override
     public Values executeWindowedAlgorithm(TupleWindow tupleWindow) {
         int outcome = 0;
         int n = tupleWindow.getNew().size();
+        Tuple currentTuple=null;
         for (Tuple input : tupleWindow.getNew()) {
+            currentTuple = input;
             double value = (double) (positionInStream == -1 ? (double) input.getValueByField(this.fieldInStream) : input.getDouble(positionInStream));
             double curr_mean = previousState.mean + ((1.0 / n) * (value - previousState.mean));
             double curr_Variance = Math.sqrt(
@@ -100,40 +83,17 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
                 break;
             } else outcome = 0;
         }
-        return new Values(tupleWindow.get(),outcome);
-
+        if (emitEntireWindow)
+            return new Values(tupleWindow.get(), outcome);
+        else return new Values(currentTuple,outcome);
     }
 
-    @Override
-    public int getWindowCount() {
-        return this.maxWindow;
-    }
-
-    @Override
-    public BaseWindowedBolt.Duration getWindowDuration() {
-        return this.duration;
-    }
-
-    @Override
-    public BaseWindowedBolt.Duration getWindowLag() {
-        return null;
-    }
-
-
-    @Override
-    public String getTimestampField() {
-        return this.timestampField;
-    }
 
     @Override
     public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources) {
         this.inputFieldsFromSources = inputFieldsFromSources;
     }
 
-    public ShewhartAgorithm withTimestampField(String fieldName){
-        this.timestampField = fieldName;
-        return this;
-    }
 
     public ShewhartAgorithm withKminus(int kminus) {
         this.kminus = kminus;

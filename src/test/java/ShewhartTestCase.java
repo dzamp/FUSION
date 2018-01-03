@@ -140,7 +140,7 @@ public class ShewhartTestCase {
 
     @Test
     public void testShewhart() {
-        ShewhartAlgorithm_ shewhartAlgorithm = (ShewhartAlgorithm_) new ShewhartAlgorithm_(5000.0,3000).withWindowCount(20).withPositionInStream(2);
+        ShewhartAlgorithm_ shewhartAlgorithm = (ShewhartAlgorithm_) new ShewhartAlgorithm_(5000.0,3000).withPositionInStream(2);
         shewhartAlgorithm.setWriter("shewhart_");
         TupleWindow tupleWindow = mock(TupleWindow.class);
 
@@ -156,8 +156,7 @@ public class ShewhartTestCase {
 
     @Test
     public void testShewhartwithFieldName() {
-        String temp = "temperature";
-        ShewhartAlgorithm_ shewhartAlgorithm = (ShewhartAlgorithm_) new ShewhartAlgorithm_().withWindowCount(20).withFieldInStream(temp);
+        ShewhartAlgorithm_ shewhartAlgorithm = (ShewhartAlgorithm_) new ShewhartAlgorithm_().withFieldInStream(temp);
         TupleWindow tupleWindow = mock(TupleWindow.class);
 
         when(tupleWindow.getNew()).thenAnswer(shewhartAnswerFieldName());
@@ -173,7 +172,7 @@ public class ShewhartTestCase {
     @Test
     public void testShewhartwithK2() {
 
-        ShewhartAlgorithm_ shewhartAlgorithm = (ShewhartAlgorithm_) new ShewhartAlgorithm_(5000,3000).withWindowCount(20).withFieldInStream(temp).withKplus(2).withKminus(2);
+        ShewhartAlgorithm_ shewhartAlgorithm = (ShewhartAlgorithm_) new ShewhartAlgorithm_(5000,3000).withFieldInStream(temp).withKplus(2).withKminus(2);
         TupleWindow tupleWindow = mock(TupleWindow.class);
         shewhartAlgorithm.setWriter("shewhartK2_");
         when(tupleWindow.getNew()).thenAnswer(shewhartAnswerFieldName());

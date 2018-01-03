@@ -10,13 +10,15 @@ import java.util.Map;
 public interface IWindowedAlgorithm {
     Values executeWindowedAlgorithm(TupleWindow tupleWindow);
 
-    int getWindowCount();
-
-    BaseWindowedBolt.Duration getWindowDuration();
-
-    BaseWindowedBolt.Duration getWindowLag();
-
-    String getTimestampField();
+//    int getWindowCount();
+//
+//    int getSlidingWindowCount();
+//
+//    BaseWindowedBolt.Duration getWindowDuration();
+//
+//    BaseWindowedBolt.Duration getWindowLag();
+//
+//    String getTimestampField();
 
     public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources);
 }
