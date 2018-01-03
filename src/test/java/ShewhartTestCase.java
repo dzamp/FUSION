@@ -1,4 +1,4 @@
-import abstraction.ShewhartAgorithm;
+import abstraction.ShewhartAlgorithm;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import exceptions.AlgorithmDeclarationException;
 import org.apache.storm.tuple.Tuple;
@@ -12,7 +12,6 @@ import org.mockito.stubbing.Answer;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -74,7 +73,7 @@ public class ShewhartTestCase {
         };
     }
 
-    public class ShewhartAlgorithm_ extends ShewhartAgorithm {
+    public class ShewhartAlgorithm_ extends ShewhartAlgorithm {
         public int alarmInstances = 0;
         private PrintWriter writer;
 
@@ -176,6 +175,22 @@ public class ShewhartTestCase {
         TupleWindow tupleWindow = mock(TupleWindow.class);
         shewhartAlgorithm.setWriter("shewhartK2_");
         when(tupleWindow.getNew()).thenAnswer(shewhartAnswerFieldName());
+//        when(tupleWindow.getNew().size()).thenReturn(5);
+        Values values;
+        for(int i=0; i< 300; i++){
+            values = shewhartAlgorithm.executeWindowedAlgorithm(tupleWindow);
+            if((int)values.get(1)==1) System.out.println("we have a breach!");
+        }
+        System.out.println("END");
+    }
+
+    @Test
+    public void testShewhartWithSingleOutput() {
+        ShewhartAlgorithm shewhartAlgorithm = new ShewhartAlgorithm(5000.0,3000).withPositionInStream(2).emitEntireWindow(false);
+//        shewhartAlgorithm.setWriter("shewhart_");
+        TupleWindow tupleWindow = mock(TupleWindow.class);
+
+        when(tupleWindow.getNew()).thenAnswer(shewhartAnswer());
 //        when(tupleWindow.getNew().size()).thenReturn(5);
         Values values;
         for(int i=0; i< 300; i++){

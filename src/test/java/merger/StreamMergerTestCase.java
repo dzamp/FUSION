@@ -1,4 +1,4 @@
-package timestamp_merger;
+package merger;
 
 import abstraction.StreamMerger;
 import org.apache.storm.tuple.Tuple;

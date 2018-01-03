@@ -36,17 +36,17 @@ public class BayesianNetwork implements IAlgorithm {
     protected Map<String, List<String>> networkMap;
     protected IBayesInferer inferer = new JunctionTreeAlgorithm();
     protected BayesNode beliefNode;
-    protected Map<String,List<Values>> streamValues;
-    protected Map<String,List<String>> streamFieldsMap;
-    protected Map<String,BayesNode> streamToNodeMap;
+    protected Map<String, List<Values>> streamValues;
+    protected Map<String, List<String>> streamFieldsMap;
+    protected Map<String, BayesNode> streamToNodeMap;
 
     public BayesianNetwork() {
         bayesNet = new BayesNet();
         networkMap = new HashMap<>();
     }
 
-    public BayesianNetwork withInference(String inferenceAlgorithm, String inference){
-        switch (inferenceAlgorithm){
+    public BayesianNetwork withInference(String inferenceNodeName, String inferenceAlgorithm) {
+        switch (inferenceAlgorithm) {
             case "JunctionTreeAlgorithm":
                 inferer = new JunctionTreeAlgorithm();
                 break;
@@ -60,16 +60,17 @@ public class BayesianNetwork implements IAlgorithm {
                 inferer = new JunctionTreeAlgorithm();
 
         }
-        log.info("Bayesian network using inference algorithm : "+ inferer.getClass().getCanonicalName());
+        log.info("Bayesian network using inference algorithm : " + inferer.getClass().getCanonicalName());
         inferer.setNetwork(bayesNet);
-        beliefNode = bayesNet.getNode(inference);
+        beliefNode = bayesNet.getNode(inferenceNodeName);
         return this;
     }
 
 
     /**
      * Creates a new BayesNode with the name given, and adds the outcomes specified
-     * @param name The name of the BayesNode that will be created
+     *
+     * @param name     The name of the BayesNode that will be created
      * @param outcomes The outcomes of the node created
      */
     public BayesianNetwork addNodeWithOutcomes(String name, String... outcomes) {
@@ -80,20 +81,21 @@ public class BayesianNetwork implements IAlgorithm {
 
     /**
      * Adds parents to the node specified by its node
-     * @param nodeName the name of the node that will have those parents
+     * In case the probability table of the nodeName has been already defined. This is discouraged from the
+     *                                       documentation of Jayes
+     * @param nodeName       the name of the node that will have those parents
      * @param parentsTobeSet The list of parents that will be added. These nodes must be already created
-     * @throws AlgorithmDeclarationException in case the probability table of the nodeName has been already defined. This is discouraged from the
-     * documentation of Jayes
      */
-    public BayesianNetwork addParentsToNode(String nodeName, String ...parentsTobeSet) throws AlgorithmDeclarationException {
+    public BayesianNetwork addParentsToNode(String nodeName, String... parentsTobeSet) {
         BayesNode node = bayesNet.getNode(nodeName);
-        if (node.getProbabilities().length > 0) {
-            log.error("Ensure that parent node is being set BEFORE adding probabilities to this node");
-            throw new AlgorithmDeclarationException("Ensure that parent node is being set BEFORE adding probabilities to this node");
-        }
+        double[] probs = node.getProbabilities();
+//        if (node.getProbabilities().length > 0) {
+//            log.error("Ensure that parent node is being set BEFORE adding probabilities to this node");
+//            throw new AlgorithmDeclarationException("Ensure that parent node is being set BEFORE adding probabilities to this node");
+//        }
         List<BayesNode> parents = new ArrayList<>();
-        for(String parent: parentsTobeSet){
-               parents.add(bayesNet.getNode(parent));
+        for (String parent : parentsTobeSet) {
+            parents.add(bayesNet.getNode(parent));
         }
 
         node.setParents(parents);
@@ -101,19 +103,19 @@ public class BayesianNetwork implements IAlgorithm {
     }
 
 
-    /** Set the CPT table of the node
+    /**
+     * Set the CPT table of the node
+     *
      * @param nodeName      the name of the node
      * @param probabilities a string representing with line delimeter = | and value delimeter = ,
      */
     public BayesianNetwork setProbabilities(String nodeName, String probabilities) {
         BayesNode node = bayesNet.getNode(nodeName);
-        String rowRegex = "|", valueRegex = ",";
-        String[] rows = probabilities.split(rowRegex);
+        String valueRegex = ",";
         ArrayList<Double> probabilityArray = new ArrayList<>();
-        for (String row : rows) {
-            String[] values = row.split(valueRegex);
-            for (String value : values) probabilityArray.add(Double.valueOf(value));
-        }
+        String[] values = probabilities.split(valueRegex);
+        for (String value : values) probabilityArray.add(Double.valueOf(value));
+
         Double[] probArray = probabilityArray.toArray(new Double[0]);
         double[] probs = ArrayUtils.toPrimitive(probArray);
         node.setProbabilities(probs);
@@ -128,28 +130,28 @@ public class BayesianNetwork implements IAlgorithm {
     }
 
     private void validateNetwork() throws AlgorithmDeclarationException {
-        for(BayesNode node : bayesNet.getNodes()){
-            if(node.getProbabilities().length==0){
+        for (BayesNode node : bayesNet.getNodes()) {
+            if (node.getProbabilities().length == 0) {
                 log.error("Node " + node.getName() + " has not a CPT configured");
                 throw new AlgorithmDeclarationException("Bayesian network instantiation error");
             }
         }
     }
 
-    public BayesianNetwork setStreamToNodeMap(String streamName, String nodeName){
-        if(streamToNodeMap==null)  streamToNodeMap = new HashMap<>();
+    public BayesianNetwork setStreamToNodeMap(String streamName, String nodeName) {
+        if (streamToNodeMap == null) streamToNodeMap = new HashMap<>();
         BayesNode node = bayesNet.getNode(nodeName);
-        streamToNodeMap.put(streamName,node);
+        streamToNodeMap.put(streamName, node);
         return this;
     }
 
-    private void resolveStreamToNodes(Map<String,List<String>> streamFieldsMap) {
+    private void resolveStreamToNodes(Map<String, List<String>> streamFieldsMap) {
         //assume same name policy if no mapping has been defined
-        if(streamToNodeMap == null) {
+        if (streamToNodeMap == null) {
             log.info("Assuming same stream to bayesian node name policy ");
             for (String stream : streamFieldsMap.keySet()) {
                 for (BayesNode node : bayesNet.getNodes()) {
-                    if (stream.toLowerCase().contains(node.getName().toLowerCase())) streamToNodeMap.put(stream,node);
+                    if (stream.toLowerCase().contains(node.getName().toLowerCase())) streamToNodeMap.put(stream, node);
                 }
             }
         }
@@ -170,12 +172,12 @@ public class BayesianNetwork implements IAlgorithm {
         //Epishs 8a prepei na ginei kapoio classification sta dedomena apo to inferrence(px gia 8ermokrasia ti shmainei high, low, medium?) ktl
         streamValues = (Map<String, List<Values>>) tuple.getValues().get(0);
         streamFieldsMap = (Map<String, List<String>>) tuple.getValues().get(1);
-        for(String stream : streamValues.keySet()){
+        for (String stream : streamValues.keySet()) {
             //TODO classify the values according to the outcomes!
             //TODO An dn einai o shewhart??? kai einai o QUMSUM? ti ginetai an einai kapoios allos?
             //TODO edw prepei na kanw ena classification ths timhs/timwn pou dexomai se poio outcome anhkoun kai sthn sunexeia na to kanw set ws evidence
         }
-
+        System.out.println("eheeee");
         //TODO edw prepei na exw 8esei ta evidence kai na kanw inferrece
         //TODO ti action 8a lavoume gnk? stelnw kapou report? grafw se vash? kanw http post?
         return null;

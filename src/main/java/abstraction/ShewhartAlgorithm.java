@@ -1,8 +1,5 @@
 package abstraction;
 
-import algorithms.MValuesShewhartBolt;
-import exceptions.AlgorithmDeclarationException;
-import org.apache.storm.topology.base.BaseWindowedBolt;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
@@ -11,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class ShewhartAgorithm implements IWindowedAlgorithm {
+public class ShewhartAlgorithm implements IWindowedAlgorithm {
 
     protected ShewHartState previousState;
     //position on which the shewhard algorithm will be applied
@@ -28,30 +25,30 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
     //TODO what about timestamp? if this algorithm emits many values it cannot be combined with a timestamp merger
 
 
-    public ShewhartAgorithm() {
+    public ShewhartAlgorithm() {
         this.previousState = new ShewHartState();
     }
 
-    public ShewhartAgorithm(double initialMean, double initialVariance) {
+    public ShewhartAlgorithm(double initialMean, double initialVariance) {
         this.previousState = new ShewHartState(initialMean, initialVariance);
     }
 
 
 
-    public ShewhartAgorithm withPositionInStream(int position) {
+    public ShewhartAlgorithm withPositionInStream(int position) {
         this.positionInStream = position;
         this.fieldInStream = "";
         return this;
     }
 
-    public ShewhartAgorithm withFieldInStream(String fieldName) {
+    public ShewhartAlgorithm withFieldInStream(String fieldName) {
         this.fieldInStream = fieldName;
         this.positionInStream = -1;
         return this;
     }
 
 
-    public ShewhartAgorithm emitEntireWindow(boolean value){
+    public ShewhartAlgorithm emitEntireWindow(boolean value){
         this.emitEntireWindow = value;
         return this;
     }
@@ -95,18 +92,18 @@ public class ShewhartAgorithm implements IWindowedAlgorithm {
     }
 
 
-    public ShewhartAgorithm withKminus(int kminus) {
+    public ShewhartAlgorithm withKminus(int kminus) {
         this.kminus = kminus;
         return this;
     }
 
-    public ShewhartAgorithm withKplus(int kplus) {
+    public ShewhartAlgorithm withKplus(int kplus) {
         this.kplus = kplus;
         return this;
     }
 
 
-    public ShewhartAgorithm build() {
+    public ShewhartAlgorithm build() {
         //TODO any error checking here?
         return this;
     }
