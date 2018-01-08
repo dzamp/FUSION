@@ -21,7 +21,7 @@ public  class GenericBolt implements IRichBolt {
     protected Map configMap;
     protected List<BoltEmitter> actions;
     protected IAlgorithm algorithm;
-
+    protected OutputFieldsDeclarer declarer;
 
 
     public GenericBolt withAlgorithm(IAlgorithm algo){
@@ -77,12 +77,14 @@ public  class GenericBolt implements IRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        if(this.actions.size() == 1) {
-            if(this.actions.get(0).getStreamId()==null)
-                declarer.declare(new Fields(this.actions.get(0).getEmittedFields()));
-        }
-        else {
-            actions.forEach(boltEmitter -> declarer.declareStream(boltEmitter.getStreamId(),new Fields(boltEmitter.getEmittedFields())));
+        this.declarer = declarer;
+        if(this.actions!=null) {
+            if (this.actions.size() == 1) {
+                if (this.actions.get(0).getStreamId() == null)
+                    declarer.declare(new Fields(this.actions.get(0).getEmittedFields()));
+            } else {
+                actions.forEach(boltEmitter -> declarer.declareStream(boltEmitter.getStreamId(), new Fields(boltEmitter.getEmittedFields())));
+            }
         }
     }
 

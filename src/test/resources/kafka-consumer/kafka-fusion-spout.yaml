@@ -26,19 +26,28 @@ config:
   topology.debug: true
 
 
-# Components
-# Components are analagous to Spring beans. They are meant to be used as constructor,
-# property(setter), and builder arguments.
-#
-# for the time being, <h2> components must be declared in the order they are referenced </h2>
 components:
-  - id: "stringScheme"
-    className: "org.apache.storm.kafka.StringScheme"
 
-  - id: "stringMultiScheme"
-    className: "org.apache.storm.spout.SchemeAsMultiScheme"
+  - id: "fusionScheme"
+    className: "consumers.FusionScheme"
+    configMethods:
+      - name : "withClasses"
+        args :
+        # this is the way to pass an array to method with varargs
+          - [ "java.lang.String", "java.lang.Integer",  "java.lang.Long"]
+      - name : "withRegex"
+        args : [","]
+      - name : "withFields"
+        args :
+        # this is the way to pass an array to method with varargs
+          - ["id","value","timestamp"]
+
+  - id: "keyValueSchemeasMultiScheme"
+    className: "org.apache.storm.kafka.KeyValueSchemeAsMultiScheme"
     constructorArgs:
-      - ref: "stringScheme"
+      - ref: "fusionScheme"
+
+
 
   - id: "zkHosts"
     className: "org.apache.storm.kafka.ZkHosts"
@@ -46,16 +55,6 @@ components:
       - "localhost:2181"
 
 
-# Alternative kafka config
-#  - id: "kafkaConfig"
-#    className: "org.apache.storm.kafka.KafkaConfig"
-#    constructorArgs:
-#      # brokerHosts
-#      - ref: "zkHosts"
-#      # topic
-#      - "myKafkaTopic"
-#      # clientId (optional)
-#      - "myKafkaClientId"
 
   - id: "spoutConfig"
     className: "org.apache.storm.kafka.SpoutConfig"
@@ -63,9 +62,9 @@ components:
       # brokerHosts
       - ref: "zkHosts"
       # topic
-      - "helloworld"
+      - "health"
       # zkRoot
-      - "/helloworld"
+      - "/health"
       # id
       - "storm-consumer"
     properties:
@@ -74,7 +73,7 @@ components:
       - name: "fetchSizeBytes"
         value: 4194304
       - name: "scheme"
-        ref: "stringMultiScheme"
+        ref: "keyValueSchemeasMultiScheme"
 
 
 

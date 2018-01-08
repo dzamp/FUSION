@@ -5,6 +5,7 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * Created by jim on 2/1/2018.
  */
-public class FieldFilter implements IAlgorithm {
+public class FieldFilter implements IAlgorithm, Serializable {
 
     protected String[] fieldsTobeRemoved;
 

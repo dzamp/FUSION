@@ -53,7 +53,7 @@ public class RandomNumberSpout extends BaseRichSpout {
     public void nextTuple() {
         Utils.sleep(this.sleeptime);
         Number random = (int)(Math.random() *  (int)maximumNumber) + 1;
-        collector.emit(new Values(random));
+        collector.emit(new Values(random,10));
 
     }
 

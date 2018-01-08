@@ -13,6 +13,7 @@ import org.eclipse.recommenders.jayes.inference.RejectionSampling;
 import org.eclipse.recommenders.jayes.inference.junctionTree.JunctionTreeAlgorithm;
 import scala.actors.threadpool.Arrays;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.Map;
  * Documentation for this algorithm
  * <a> http://www.eclipse.org/recommenders/jayes </a>
  */
-public class BayesianNetwork implements IAlgorithm {
+public class BayesianNetwork implements IAlgorithm, Serializable{
 
     protected Logger log = Logger.getLogger(this.getClass());
     protected BayesNet bayesNet;
@@ -124,6 +125,7 @@ public class BayesianNetwork implements IAlgorithm {
 
     public BayesianNetwork build() throws AlgorithmDeclarationException {
         //TODO maybe build a more complex validation
+
         resolveStreamToNodes(streamFieldsMap);
         validateNetwork();
         return this;

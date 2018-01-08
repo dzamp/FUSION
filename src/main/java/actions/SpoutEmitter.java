@@ -117,9 +117,6 @@ public class SpoutEmitter implements SpoutAction, FieldMapper, Serializable {
                     converters.add((ClassConverter<String>) value -> value);
             }
         }
-
-
-
     }
 
 }

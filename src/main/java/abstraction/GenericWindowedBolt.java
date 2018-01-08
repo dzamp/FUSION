@@ -27,6 +27,8 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
 //        super();
 //    }
 
+
+
     public GenericWindowedBolt withAlgorithm(IWindowedAlgorithm algo) {
         this.algorithm = algo;
         return this;
@@ -40,6 +42,7 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
         this.collector = collector;
         this.configMap = stormConf;
         this.actions = new ArrayList<>();
+
     }
 
 
@@ -67,12 +70,14 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        this.declarer = declarer;
-        if (this.actions.size() == 1) {
-            if (this.actions.get(0).getStreamId() == null)
-                this.declarer.declare(new Fields(this.actions.get(0).getEmittedFields()));
-        } else {
-            actions.forEach(boltEmitter -> this.declarer.declareStream(boltEmitter.getStreamId(), new Fields(boltEmitter.getEmittedFields())));
+
+        if(this.actions!=null) {
+            if (this.actions.size() == 1) {
+                if (this.actions.get(0).getStreamId() == null)
+                    this.declarer.declare(new Fields(this.actions.get(0).getEmittedFields()));
+            } else {
+                actions.forEach(boltEmitter -> this.declarer.declareStream(boltEmitter.getStreamId(), new Fields(boltEmitter.getEmittedFields())));
+            }
         }
     }
 

@@ -115,4 +115,23 @@ public class JayesNetTestCase {
         );
     }
 
+    @Test
+    public void testInferenceFire() {
+        IBayesInferer inferer = new JunctionTreeAlgorithm();
+        inferer.setNetwork(bayesianNetwork);
+        Map<BayesNode,String> evidence = new HashMap<BayesNode,String>();
+        evidence.put(temperature, "high");
+        evidence.put(humidity,"medium");
+//        evidence.put(b, "three");
+        inferer.setEvidence(evidence);
+
+        double[] beliefsC = inferer.getBeliefs(fireIncident);
+
+        System.out.println("\nJunctionTreeAlgorithm reports " +
+                "\nP(FireIncident=fire|temperature=high, humidity=medium) = " + beliefsC[0] +
+                "\nP(FireIncident=not-fire|temperature=high, humidity=medium) = " + beliefsC[1]
+
+        );
+    }
+
 }

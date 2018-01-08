@@ -5,9 +5,10 @@ import org.apache.storm.tuple.Values;
 import util.FilterOperation;
 import util.Operator;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class ValueFilter  /*extends GenericBolt*/ implements IAlgorithm {
+public class ValueFilter  /*extends GenericBolt*/ implements IAlgorithm , Serializable{
 
     protected Number threshold;
     protected Class clazz;

@@ -6,6 +6,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -26,7 +27,7 @@ import java.util.*;
  * kai ena Map<String,List<String>> meta pou 8a periexei to stream name kai ta StringFields pou antistoixoun se ka8e stream
  */
 
-public class StreamMerger implements IWindowedAlgorithm {
+public class StreamMerger implements IWindowedAlgorithm, Serializable {
 
     protected Map<String, Map<String, List<String>>> inputFieldsFromSources;
     protected Map<String, List<String>> streamFieldsMap;

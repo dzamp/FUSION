@@ -4,11 +4,12 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 
-public class ShewhartAlgorithm implements IWindowedAlgorithm {
+public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
     protected ShewHartState previousState;
     //position on which the shewhard algorithm will be applied
@@ -108,7 +109,7 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm {
         return this;
     }
 
-    protected class ShewHartState {
+    protected class ShewHartState implements Serializable {
         //TODO could those be NUmbers?
         private double mean;
         private double variance;

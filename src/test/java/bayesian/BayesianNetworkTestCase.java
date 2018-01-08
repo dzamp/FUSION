@@ -24,18 +24,18 @@ public class BayesianNetworkTestCase  {
             bayesianNetwork = new BayesianNetwork()
                     .addNodeWithOutcomes("temperature", "low","medium", "high").setProbabilities("temperature","0.2,0.4,0.4")
                     .addNodeWithOutcomes("humidity","low","medium", "high").setProbabilities("humidity","0.1,0.4,0.5")
-                    .addNodeWithOutcomes("fire","low","high").addParentsToNode("fire","temperature","humidity").setProbabilities("fire",  //temperature == high
-                            "0.2,0.8," +    //p(fire| temp= high, hum=high), p(fire|temp= high,hum=~high)
-                            "0.3,0.7," +   //p(fire| temp = high, hum=medium), p(fire|temp = high,hum=~medium)
-                            "0.5,0.5," +    //p(fire|temp = high,hum=low), p(fire|temp = high,hum=~low)
-                            //temperature= medium
-                            "0.1,0.9,"+    //p(fire|temp = medium,hum=high), p(fire|temp = medium,hum=~high)
-                            "0.3,0.7," +   //p(fire|temp = medium,hum=medium), p(fire|temp = medium,hum=~medium)
-                            "0.3,0.7,"+    //p(fire|temp = medium,hum=low), p(fire|temp = medium,hum=~low)
-                            //temperature = low
-                            "0.1,0.9," +  //p(fire|temp = low,hum=high), p(fire|temp = low,hum=~high)
-                            "0.2,0.8," +    //p(fire|temp = low,hum=medium), p(fire|temp = low,hum=~medium)
-                            "0.2,0.8,"     //p(fire|temp = low,hum=low), p(fire|temp = low,hum=~low))
+                    .addNodeWithOutcomes("fire","low","high").addParentsToNode("fire","temperature","humidity").setProbabilities("fire",       //temperature == high
+                            "0.2,0.8," +    //p(fire| temp= high, hum=high), p(not-fire|temp= high,hum=high)
+                            "0.3,0.7," +   //p(fire| temp = high, hum=medium), p(not-fire |temp = high,hum=medium)
+                            "0.5,0.5," +    //p(fire|temp = high,hum=low), p(not-fire|temp = high,hum=low)
+                          //temperature= medium
+                            "0.1,0.9,"+    //p(fire|temp = medium,hum=high), p(not-fire|temp = medium,hum=high)
+                            "0.3,0.7," +   //p(fire|temp = medium,hum=medium), p(not-fire|temp = medium,hum=medium)
+                            "0.3,0.7,"+    //p(fire|temp = medium,hum=low), p(not-fire|temp = medium,hum=low)
+                          //temperature = low
+                            "0.1,0.9," +  //p(fire|temp = low,hum=high), p(not-fire|temp = low,hum=high)
+                            "0.2,0.8," +    //p(fire|temp = low,hum=medium), p(not-fire|temp = low,hum=medium)
+                            "0.2,0.8,"     //p(fire|temp = low,hum=low), p(not-fire|temp = low,hum=low))
                     ).withInference("fire","").setStreamToNodeMap("temperature-spout","temperature").setStreamToNodeMap("humidity-spout", "humidity").build();
         } catch (AlgorithmDeclarationException e) {
             e.printStackTrace();
