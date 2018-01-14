@@ -1,0 +1,52 @@
+name: "mqtt-topology-direct"
+config:
+  topology.workers: 1
+  topology.debug: true
+
+
+components:
+  - id: "spout-count-emitter"
+    className: "actions.SpoutEmitter"
+    constructorArgs:
+      - ["number"]
+      - ["java.lang.Integer"]
+
+
+# spout definitions
+spouts:
+  - id: "spout-1"
+    className: "consumers.MqttConsumerSpout"
+    constructorArgs:
+      - "tcp://localhost:1883"
+      - "hello"
+      - "health_monitor/blood_pressure"
+    configMethods:
+      - name: "addEmitAction"
+        args: [ref: "spout-count-emitter"]
+    parallelism: 2
+
+# bolt definitions
+bolts:
+  - id: "bolt-1"
+    className: "algorithms.ObjectCounterBolt"
+    parallelism: 2
+
+
+#stream definitions
+streams:
+  - name: "spout-1 --> bolt-1" # name isn't used (placeholder for logging, UI, etc.)
+    from: "spout-1"
+    to: "bolt-1"
+    grouping:
+      type: FIELDS
+      args: ["number"]
+
+#
+#  - name: "spout-1 --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
+#    from: "spout-1"
+#    to: "bolt-2"
+#    grouping:
+#      type: SHUFFLE
+
+
+

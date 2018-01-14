@@ -1,7 +1,7 @@
 //package flux.fusion;
 //
 //import algorithms.RandomWordSpout;
-//import algorithms.ObjectCounter;
+//import algorithms.ObjectCounterBolt;
 //import flux.Flux;
 //import flux.FluxBuilder;
 //import flux.model.*;
@@ -50,8 +50,8 @@
 //    private static final String OPTION_NO_SPLASH = "no-splash";
 //    private static final String OPTION_INACTIVE = "inactive";
 //    private static final String OPTION_ZOOKEEPER = "zookeeper";
-//    private static final String OPTION_FILTER = "filter";
-//    private static final String OPTION_ENV_FILTER = "env-filter";
+//    private static final String OPTION_FILTER = "filterOperation";
+//    private static final String OPTION_ENV_FILTER = "env-filterOperation";
 //    public static final Thread mainThread = Thread.currentThread();
 //    static volatile boolean keepRunning = true;
 //
@@ -170,7 +170,7 @@
 //        StormTopology topology = FluxBuilder.buildTopology(context);
 //        // TopologyBuilder builder2 = new TopologyBuilder();
 //        // SpoutDeclarer declarer = builder2.setSpout("spout-1", new RandomWordSpout(),2);
-//        // BoltDeclarer boltDeclarer = builder2.setBolt("bolt-1", new ObjectCounter(),2);
+//        // BoltDeclarer boltDeclarer = builder2.setBolt("bolt-1", new ObjectCounterBolt(),2);
 //        // boltDeclarer.fieldsGrouping("spout-1", "spout-1 --> bolt-1", new Fields(new String(){"words"}));
 //        // StormTopology topology2  = builder2.createTopology();
 //        if(!cmd.hasOption(OPTION_NO_DETAIL)){

@@ -14,12 +14,12 @@ import java.util.Map;
 public class RandomNumberSpout extends BaseRichSpout {
     SpoutOutputCollector collector;
     Class clazz;
-    Object maximumNumber;
+    Number maximumNumber;
     Object threshold;
     String[] emittedFields;
     int sleeptime;
 
-    public RandomNumberSpout(String className, Object max_value, Object threshold, String[] emittedFields, int sleeptime) {
+    public RandomNumberSpout(String className, Number max_value, Object threshold, String[] emittedFields, int sleeptime) {
         this.sleeptime = sleeptime;
         try {
             this.clazz = Class.forName(className);
@@ -28,7 +28,7 @@ public class RandomNumberSpout extends BaseRichSpout {
         }
         if (clazz.getSuperclass() == Number.class) {
             try {
-                this.maximumNumber = clazz.getConstructors()[0].newInstance(max_value);
+                this.maximumNumber = (Number) clazz.getConstructors()[0].newInstance(max_value);
                 this.threshold = clazz.getConstructors()[0].newInstance(threshold);
             } catch (InstantiationException e) {
                 e.printStackTrace();
@@ -52,8 +52,8 @@ public class RandomNumberSpout extends BaseRichSpout {
     @Override
     public void nextTuple() {
         Utils.sleep(this.sleeptime);
-        Object random = (Math.random() * (Double) maximumNumber) + 1;
-        collector.emit(new Values(random));
+        Number random = (int)(Math.random() *  (int)maximumNumber) + 1;
+        collector.emit(new Values(random,10));
 
     }
 

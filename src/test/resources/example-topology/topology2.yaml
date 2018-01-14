@@ -1,0 +1,90 @@
+name: "yaml-topology"
+config:
+  topology.workers: 1
+  topology.debug: true
+
+
+components:
+
+  - id: "direct-over-emitter"
+    className: "actions.BoltEmitter"
+    constructorArgs:
+      - "over"
+      - ["bNumber"]
+
+  - id: "over-threshold-emitter"
+    className: "actions.BoltEmitter"
+    constructorArgs:
+      - "under"
+      - ["bNumber"]
+
+
+# spout definitions
+spouts:
+  - id: "spout-1"
+    className: "algorithms.RandomNumberSpout"
+    constructorArgs:
+      - "java.lang.Integer"
+      - 100
+      - 80
+      - ["number"]
+      - 1000
+    parallelism: 2
+
+# bolt definitions
+bolts:
+  - id: "bolt-1"
+    className: "algorithms.ThresholdBolt"
+    constructorArgs:
+      - "java.lang.Integer"
+      - 80
+      - "gt"
+#      - ref : "actions-list"
+#      - [ ref :  "direct-emitter" ]
+    configMethods:
+      - name: "addConditionTrueAction"
+        args: [ref: "direct-over-emitter"]
+      - name: "addConditionFalseAction"
+        args: [ref: "over-threshold-emitter"]
+#      - name: "addUnderAction"
+#        args: [ref: "direct-under-emitter"]
+#          - name: "addOnConditionTrueAction"
+#            args: [ ref: "direct-emitter" ]
+
+
+    parallelism: 2
+
+  - id: "bolt-2"
+    className: "algorithms.ObjectCounterBolt"
+    parallelism: 2
+
+  - id: "bolt-3"
+    className: "algorithms.ObjectCounterBolt"
+    parallelism: 2
+
+
+#stream definitions
+streams:
+  - name: "spout-1 --> bolt-1" # name isn't used (placeholder for logging, UI, etc.)
+    from: "spout-1"
+    to: "bolt-1"
+    grouping:
+      type: SHUFFLE
+
+  - name: "bolt-1 --> bolt-2"
+    from: "bolt-1"
+    to: "bolt-2"
+    grouping:
+      streamId: "over"
+      type: FIELDS
+      args: ["bNumber"]
+
+  - name: "bolt-1 --> bolt-3"
+    from: "bolt-1"
+    to: "bolt-3"
+    grouping:
+      streamId: "under"
+      type: FIELDS
+      args: ["bNumber"]
+
+
