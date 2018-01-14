@@ -1,5 +1,7 @@
 package parser;
 
+import flux.Flux;
+import flux.parser.FluxParser;
 import org.apache.commons.cli.CommandLine;
 import org.junit.Test;
 
@@ -24,6 +26,7 @@ public class TestExampleTopologies {
             fail("Exception in creating topology");
         }
         System.out.println("Topology parsed successfully");
+//        FluxParserTest.startTopology();
     }
 
     @Test

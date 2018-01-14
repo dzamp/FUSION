@@ -185,5 +185,11 @@ public class BayesianNetwork implements IAlgorithm, Serializable{
         return null;
     }
 
+    @Override
+    public String[] getExtraFields() {
+        //todo what will this return??? the belief??
+        return new String[0];
+    }
+
 
 }

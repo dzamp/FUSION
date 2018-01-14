@@ -108,8 +108,10 @@ public class ValueFilter  /*extends GenericBolt*/ implements IAlgorithm , Serial
         else return null;
     }
 
-
-
+    @Override
+    public String[] getExtraFields() {
+        return null;
+    }
 
 
     /**

@@ -57,6 +57,7 @@ public class BayesianNetworkTestCase  {
 
             });
 
+
         when(tuple.getValues().get(1)).thenAnswer(invocationOnMock -> {
             Map<String, List<String>> streamFieldsMap = new HashMap<String, List<String>>();
             streamFieldsMap.put("temperature-spout",Arrays.asList("id","temperature","timestamp"));

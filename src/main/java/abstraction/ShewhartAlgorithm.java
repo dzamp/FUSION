@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-
+//TODO this algortihm will emit new fields! how to send them to GenericWindowed Bolt?
 public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
     protected ShewHartState previousState;
@@ -24,6 +24,7 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
     protected boolean emitEntireWindow = false;
     //TODO what about timestamp? if this algorithm emits many values it cannot be combined with a timestamp merger
+
 
 
     public ShewhartAlgorithm() {
@@ -84,6 +85,11 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
         if (emitEntireWindow)
             return new Values(tupleWindow.get(), outcome);
         else return new Values(currentTuple,outcome);
+    }
+
+    @Override
+    public String[] getExtraFields() {
+        return new String[]{"shewhart_outcome"};
     }
 
 

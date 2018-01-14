@@ -20,6 +20,12 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
     private String regex = null;
     protected List<ClassConverter<?>> converters=null;
     protected List<Class> classes = null;
+    protected OutputFieldsClassMapper mapper;
+
+    public FusionScheme() {
+        mapper = new OutputFieldsClassMapper();
+    }
+
     static {
         UTF8_CHARSET = StandardCharsets.UTF_8;
     }
@@ -27,8 +33,8 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
 
 
    public FusionScheme withRegex(String regex) {
-        this.regex = regex;
-        return this;
+       mapper.withRegex(regex);
+       return this;
     }
 
     public FusionScheme withFields(String[] fieldNames){
@@ -37,24 +43,11 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
     }
 
     public FusionScheme withClasses(String[] classNames){
-        setClasses(classNames);
-        resolveClassConverters(classNames);
+        mapper.withClasses(classNames);
         return this;
     }
 
 
-    public Values mapToValues(String message, String regex, Class[] args) {
-        Values values = new Values();
-        if (regex != null) {
-            String[] stringValues = message.split(regex);
-            for (int i=0; i < stringValues.length; i++) {
-                values.add(converters.get(i).convertToObject(stringValues[i]));
-            }
-        } else {
-            values.add(converters.get(0).convertToObject(message));
-        }
-        return values;
-    }
 
 
 
@@ -80,7 +73,7 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
         //TODO INSERT HERE PATTERN TO SPLIT!!
         String[] stringValues =null;
         if(regex!=null){
-            return mapToValues(valueString,regex,this.classes.toArray(new Class[0]));
+            return mapper.mapToValues(valueString);
         }
 
         //also if we have a key, since tuples are essentialy maps should we include the key?
@@ -95,7 +88,7 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
         String[] values = null;
         if(regex!=null) {
             values= stringValue.split(regex);
-            return mapToValues(stringValue,regex,this.classes.toArray(new Class[0]));
+            return mapper.mapToValues(stringValue);
         }
         return new Values(stringValue);
     }
@@ -111,27 +104,7 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
     }
 
 
-    private void resolveClassConverters(String... classes){
-        if(this.converters == null) this.converters = new ArrayList<>();
-        for(String clazz: classes){
-            switch (clazz){
-                case "java.lang.Integer":
-                    converters.add((ClassConverter<Integer>) Integer::valueOf);
-                    break;
-                case "java.lang.Double":
-                    converters.add((ClassConverter<Double>) Double::valueOf);
-                    break;
-                case "java.lang.Float":
-                    converters.add((ClassConverter<Float>) Float::valueOf);
-                    break;
-                case "java.lang.Long":
-                    converters.add((ClassConverter<Long>) Long::valueOf);
-                    break;
-                default:
-                    converters.add((ClassConverter<String>) value -> value);
-            }
-        }
-    }
+
 
     @Override
     public Fields getOutputFields() {

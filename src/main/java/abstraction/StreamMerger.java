@@ -66,5 +66,11 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
 //        }
     }
 
+    @Override
+    public String[] getExtraFields() {
+        return null;
+        //todo here we might have issues
+    }
+
 
 }

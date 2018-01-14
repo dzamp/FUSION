@@ -19,6 +19,6 @@ public interface IWindowedAlgorithm {
 //    BaseWindowedBolt.Duration getWindowLag();
 //
 //    String getTimestampField();
-
+    public String[] getExtraFields();
     public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources);
 }

@@ -7,7 +7,9 @@ import flux.model.TopologyDef;
 import flux.parser.FluxParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.StormTopology;
+import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +30,9 @@ public class FluxParserTest extends Flux {
     private static final String OPTION_FILTER = "filter";
     private static final String OPTION_ENV_FILTER = "env-filterOperation";
     protected static FluxParserTest instance = null;
+    protected static Config conf = null;
     protected StormTopology topology = null;
-
+    protected int sleeptime = 10;
     protected static void runCli(CommandLine cmd) throws Exception {
         instance = new FluxParserTest();
         boolean dumpYaml = cmd.hasOption("dump-yaml");
@@ -57,13 +60,54 @@ public class FluxParserTest extends Flux {
 
         String topologyName = topologyDef.getName();
         // merge contents of `config` into topology config
-        Config conf = FluxBuilder.buildConfig(topologyDef);
+        conf = FluxBuilder.buildConfig(topologyDef);
         ExecutionContext context = new ExecutionContext(topologyDef, conf);
         StormTopology topology = FluxBuilder.buildTopology(context);
         topology.validate();
         if (!cmd.hasOption(OPTION_NO_DETAIL)) {
             printTopologyInfo(context);
         }
+//        LocalCluster cluster = new LocalCluster();
+//        // conf.getsetDebug(true);
+//        conf.registerMetricsConsumer(org.apache.storm.metric.LoggingMetricsConsumer.class, 10);
+//        cluster.submitTopology(topologyName, conf, topology);
+//        Utils.sleep(sleepTime);
+//
+//        Runtime.getRuntime().addShutdownHook(new Thread() {
+//            public void run() {
+//                System.out.println("Shutdown--------------------------");
+//                keepRunning = false;
+//                try {
+//                    mainThread.join();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                cluster.killTopology(topologyName);
+//                cluster.shutdown();
+//            }
+//        });
+    }
+
+    public static void startTopology(){
+        LocalCluster cluster = new LocalCluster();
+        // conf.getsetDebug(true);
+        conf.registerMetricsConsumer(org.apache.storm.metric.LoggingMetricsConsumer.class, 10);
+        cluster.submitTopology("hey", conf, instance.topology);
+        Utils.sleep(100000000);
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                System.out.println("Shutdown--------------------------");
+                keepRunning = false;
+                try {
+                    mainThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                cluster.killTopology("hey");
+                cluster.shutdown();
+            }
+        });
     }
 
     public StormTopology getTopology() {

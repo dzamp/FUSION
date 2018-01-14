@@ -52,8 +52,8 @@ public class Flux {
     private static final String OPTION_FILTER = "filter";
     private static final String OPTION_ENV_FILTER = "env-filterOperation";
     public static final Thread mainThread = Thread.currentThread();
-    static volatile boolean keepRunning = true;
-
+    protected static volatile boolean keepRunning = true;
+    protected static long sleepTime = 100000;
     public static void main(String[] args) throws Exception {
       Options options = createOptions();
 
@@ -177,7 +177,7 @@ public class Flux {
                 // conf.getsetDebug(true);
                 conf.registerMetricsConsumer(org.apache.storm.metric.LoggingMetricsConsumer.class, 10);
                 cluster.submitTopology(topologyName, conf, topology);
-                Utils.sleep(100000000);
+                Utils.sleep(sleepTime);
 
                 Runtime.getRuntime().addShutdownHook(new Thread() {
                     public void run() {

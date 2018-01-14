@@ -84,7 +84,10 @@ components:
       - name: "withPositionInStream"
         args: [1]
 
-
+#  - id: "emitToCount"
+#    className: "actions.BoltEmitter"
+#    constructorArgs:
+#      - []
 # NOTE: We may want to consider some level of spring integration. For example, allowing component references
 # to a spring `ApplicationContext`.
 
@@ -108,6 +111,9 @@ bolts:
         args: [ ref : "shewhartAlgorithm"]
       - name: "withWindow"
         args: [ref: "count"]
+
+#  - id: "ObjectCountBolt"
+#    className: "algorithms.ObjectCounterBolt"
 
 
 
