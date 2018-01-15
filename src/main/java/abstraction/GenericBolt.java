@@ -1,5 +1,6 @@
 package abstraction;
 
+import consumers.FusionIRichSpout;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -13,13 +14,13 @@ import org.apache.storm.utils.Utils;
 import java.util.*;
 
 
-public class GenericBolt implements IRichBolt {
+public class GenericBolt implements FusionIRichBolt {
     protected TopologyContext topologyContext;
     protected OutputCollector collector;
     protected Map configMap;
 //    protected List<BoltEmitter> actions;
     protected IAlgorithm algorithm;
-    protected OutputFieldsDeclarer declarer;
+//    protected OutputFieldsDeclarer declarer;
     //convert to map of streamName to field list
     protected Map<String, List<String>> incomingStreamsFieldsMap;
     protected Map<String, List<String>> outcomingStreamsFieldsMap;
@@ -62,6 +63,9 @@ public class GenericBolt implements IRichBolt {
         if (algorithm.getExtraFields() != null) {
             fieldNames = (String[]) ArrayUtils.addAll(fieldNames, algorithm.getExtraFields());
         }
+        Set<String> removeDuplicates = new HashSet<>();
+        removeDuplicates.addAll(Arrays.asList(fieldNames));
+        fieldNames = removeDuplicates.toArray(new String[removeDuplicates.size()]);
         //fill the outcomingStreamMap to be used by the declarer
         for (String stream : streamIds) {
             outcomingStreamsFieldsMap.put(stream, Arrays.asList(fieldNames));
@@ -74,7 +78,7 @@ public class GenericBolt implements IRichBolt {
         this.collector = outputCollector;
         this.configMap = map;
 //        this.actions = new ArrayList<>();
-        setOutboundStreams();
+
     }
 
 //    public void addAction(BoltEmitter boltEmitter) {
@@ -116,7 +120,7 @@ public class GenericBolt implements IRichBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         //Again the declare method that takes no stream argument is the same method call
-        this.declarer = declarer;
+        setOutboundStreams();
         this.outcomingStreamsFieldsMap.forEach((stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
 
     }
@@ -124,5 +128,10 @@ public class GenericBolt implements IRichBolt {
     @Override
     public Map<String, Object> getComponentConfiguration() {
         return null;
+    }
+
+    @Override
+    public void setFields(String... fieldNames) {
+        this.withFields(fieldNames);
     }
 }

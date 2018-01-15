@@ -4,23 +4,23 @@ import actions.ClassConverter;
 import org.apache.log4j.Logger;
 import org.apache.storm.tuple.Values;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OutputFieldsClassMapper {
+public class OutputFieldsClassMapper implements Serializable{
 
     protected List<ClassConverter<?>> converters = null;
     protected List<Class> classes = null;
     protected String regex = null;
-    protected Logger log;
+//    protected Logger log;
     public OutputFieldsClassMapper( String ...classNames){
-        log = Logger.getLogger(this.getClass());
         setClasses(classNames);
         resolveClassConverters(classNames);
     }
 
     public OutputFieldsClassMapper() {
-        log = Logger.getLogger(this.getClass());
+
     }
 
     public  OutputFieldsClassMapper withRegex(String regex){
@@ -40,7 +40,6 @@ public class OutputFieldsClassMapper {
             try {
                 this.classes.add(Class.forName(clazz));
             } catch (ClassNotFoundException e) {
-                log.error("Class " + clazz + " not found.Exiting...");
                 e.printStackTrace();
             }
     }

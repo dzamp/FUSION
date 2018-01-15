@@ -17,9 +17,7 @@
  */
 package flux.model;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.storm.Config;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,13 +34,13 @@ import java.util.*;
  *   5. A list of stream definitions that define the flow between spouts and bolts.
  *
  */
-@JacksonXmlRootElement(localName = "topology")
+//@JacksonXmlRootElement(localName = "topology")
 public class TopologyDef {
     private static Logger LOG = LoggerFactory.getLogger(TopologyDef.class);
 
-    @JacksonXmlProperty(localName = "name")
+//    @JacksonXmlProperty(localName = "name")
     private String name;
-    @JacksonXmlProperty(localName = "config")
+//    @JacksonXmlProperty(localName = "config")
     private Map<String,Object> configuration  =new HashMap<>();
     // private Map<String, ?> config = new HashMap<String, Object>();
 
@@ -52,11 +50,11 @@ public class TopologyDef {
     private TopologySourceDef topologySource;
 
     // the following are required if we're defining a core storm topology DAG in YAML, etc.
-    @JacksonXmlProperty(localName = "bolts")
     private Map<String, BoltDef> boltMap = new LinkedHashMap<String, BoltDef>();
-    @JacksonXmlProperty(localName = "spouts")
     private Map<String, SpoutDef> spoutMap = new LinkedHashMap<String, SpoutDef>();
-    @JacksonXmlProperty(localName = "streams")
+    private Map<String, MqttSpoutDef> mqttSpouts = new LinkedHashMap<>();
+    private Map<String, FusionBoltDef> fusionBolts = new LinkedHashMap<>();
+//    @JacksonXmlProperty(localName = "streams")
     private List<StreamDef> streams = new ArrayList<StreamDef>();
 
 
@@ -78,7 +76,9 @@ public class TopologyDef {
 
     public List<SpoutDef> getSpouts() {
         ArrayList<SpoutDef> retval = new ArrayList<SpoutDef>();
+        consolidateSpouts();
         retval.addAll(this.spoutMap.values());
+//        retval.addAll((Collection<? extends SpoutDef>) this.mqttSpouts);
         return retval;
     }
 
@@ -89,7 +89,43 @@ public class TopologyDef {
         }
     }
 
+    public List<FusionBoltDef> getFusionbolts() {
+        ArrayList<FusionBoltDef> retval = new ArrayList<>();
+        retval.addAll(this.fusionBolts.values());
+        return retval;
+    }
+
+    public void setFusionbolts(List<FusionBoltDef> fusionbolts) {
+        this.fusionBolts = new LinkedHashMap<String, FusionBoltDef>();
+        for(FusionBoltDef bolt : fusionbolts){
+            this.fusionBolts.put(bolt.getId(), bolt);
+        }
+    }
+
+    public List<MqttSpoutDef> getMqttspouts() {
+        ArrayList<MqttSpoutDef> retval = new ArrayList<>();
+        retval.addAll(this.mqttSpouts.values());
+        return retval;
+    }
+
+
+    public void consolidateSpouts(){
+        this.spoutMap.putAll(mqttSpouts);
+    }
+
+    public void consolidateBolts(){
+        this.boltMap.putAll(fusionBolts);
+    }
+
+    public void setMqttspouts(List<MqttSpoutDef> spouts) {
+        this.mqttSpouts = new LinkedHashMap<>();
+        for(MqttSpoutDef spout : spouts){
+            this.mqttSpouts.put(spout.getId(), spout);
+        }
+    }
+
     public List<BoltDef> getBolts() {
+        consolidateBolts();
         ArrayList<BoltDef> retval = new ArrayList<BoltDef>();
         retval.addAll(this.boltMap.values());
         return retval;
@@ -147,10 +183,18 @@ public class TopologyDef {
     public BoltDef getBoltDef(String id){
         return this.boltMap.get(id);
     }
+    public FusionBoltDef getFusionBoltDef(String id){
+        return this.fusionBolts.get(id);
+    }
 
     public SpoutDef getSpoutDef(String id){
         return this.spoutMap.get(id);
     }
+
+    public MqttSpoutDef getMqttSpoutDef(String id){
+        return this.mqttSpouts.get(id);
+    }
+
 
     public BeanDef getComponent(String id){
         return this.componentMap.get(id);

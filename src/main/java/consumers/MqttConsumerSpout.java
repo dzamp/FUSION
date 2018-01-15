@@ -1,7 +1,5 @@
 package consumers;
 
-import actions.Action;
-import actions.ClassConverter;
 import actions.SpoutAction;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -17,7 +15,10 @@ import org.apache.storm.utils.Time;
 import org.apache.storm.utils.Utils;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 
@@ -31,7 +32,7 @@ import java.util.concurrent.BlockingQueue;
  * - String ...args / Class args the classes that will be used to emit the split values
  * Otherwise in case we want to emit to only one bolt we might as well use the second constructor and supply only one emitAction
  */
-public class MqttConsumerSpout implements MqttCallback, IRichSpout {
+public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     protected String brokerUrl;
     protected String clientId;
     protected String topic;
@@ -48,6 +49,7 @@ public class MqttConsumerSpout implements MqttCallback, IRichSpout {
     protected int qos = 1;
 
     protected OutputFieldsClassMapper mapper;
+//    protected OutputFieldsDeclarer declarer;
 
     public MqttConsumerSpout(String brokerUrl, String clientId, String topic) {
         this.brokerUrl = brokerUrl;
@@ -55,8 +57,6 @@ public class MqttConsumerSpout implements MqttCallback, IRichSpout {
         this.topic = topic;
         this.mapper = new OutputFieldsClassMapper();
     }
-
-
 
 
     public MqttConsumerSpout withFields(String... fieldNames) {
@@ -87,15 +87,14 @@ public class MqttConsumerSpout implements MqttCallback, IRichSpout {
         messageQueue = new BlockingArrayQueue<>();
         log = Logger.getLogger(this.getClass());
         setMqttClientConnection(this.brokerUrl, this.clientId);
-        setOutboundStreams();
+//        setOutboundStreams();
     }
 
     protected void setOutboundStreams() {
         this.outcomingStreamsFieldsMap = new HashMap<>();
         if (streamIds == null) //if no
             this.streamIds = new String[]{Utils.DEFAULT_STREAM_ID};
-        if (fieldNames == null)
-            log.error("No outcoming fields from MqttMessageSpout ");
+        if (fieldNames == null) throw new RuntimeException("No fields specified ");
         //todo throw exception
         //fill the outcomingStreamMap to be used by the declarer
         for (String stream : streamIds) {
@@ -139,7 +138,6 @@ public class MqttConsumerSpout implements MqttCallback, IRichSpout {
             );
         }
     }
-
 
 
     @Override
@@ -208,11 +206,10 @@ public class MqttConsumerSpout implements MqttCallback, IRichSpout {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         //prepare the declarer
-        if (emitActions.size() == 1 && emitActions.get(0).getStreamId() == null)
-            declarer.declare(new Fields(emitActions.get(0).getEmittedFields()));
-        else
-            for (Action action : emitActions)
-                declarer.declareStream(action.getStreamId(), new Fields(action.getEmittedFields()));
+        setOutboundStreams();
+//        this.declarer = declarer;
+        this.outcomingStreamsFieldsMap.forEach(
+                (stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
 
     }
 
@@ -222,4 +219,8 @@ public class MqttConsumerSpout implements MqttCallback, IRichSpout {
     }
 
 
+    @Override
+    public void setFields(String... fieldNames) {
+        withFields(fieldNames);
+    }
 }

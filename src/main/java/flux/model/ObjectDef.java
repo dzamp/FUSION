@@ -29,15 +29,15 @@ import java.util.Map;
  * and properties, can be instantiated.
  */
 public class ObjectDef {
-    @JacksonXmlProperty(localName = "className")
+//    @JacksonXmlProperty(localName = "className")
     private String className;
-    @JacksonXmlProperty(localName = "constructorArgs")
+//    @JacksonXmlProperty(localName = "constructorArgs")
     private List<Object> constructorArgs;
-    @JacksonXmlProperty(localName = "hasReferences")
+//    @JacksonXmlProperty(localName = "hasReferences")
     private boolean hasReferences;
-    @JacksonXmlProperty(localName = "properties")
+//    @JacksonXmlProperty(localName = "properties")
     private List<PropertyDef> properties;
-    @JacksonXmlProperty(localName = "configMethods")
+//    @JacksonXmlProperty(localName = "configMethods")
     private List<ConfigMethodDef> configMethods;
 
     public String getClassName() {

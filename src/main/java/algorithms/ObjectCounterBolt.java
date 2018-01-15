@@ -37,7 +37,7 @@ public class ObjectCounterBolt extends BaseRichBolt {
         }else {
             countMap.put(value, countMap.get(value)+1);
         }
-
+        collector.emit(tuple.getValues());
     }
 
 

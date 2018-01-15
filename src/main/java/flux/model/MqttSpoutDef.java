@@ -3,7 +3,7 @@ package flux.model;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement(localName = "mqtt-spout")
-public class MqttSpout extends SpoutDef {
+public class MqttSpoutDef extends SpoutDef {
     public String[] fields = null;
 
     public String[] getFields() {

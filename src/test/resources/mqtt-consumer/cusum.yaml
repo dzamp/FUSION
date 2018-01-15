@@ -1,19 +1,65 @@
-name: "mqtt-shewhart"
+name: "mqtt-topology-direct"
 config:
   topology.workers: 1
   topology.debug: true
 
 
-#components:
-#  - id: "spout-count-emitter"
-#    className: "actions.SpoutEmitter"
-#    constructorArgs:
-#      - ["number"]
-#      - ["java.lang.Integer"]
+components:
 
+
+  - id: "cusumAlgorithm"
+    className: "abstraction.CusumAlgorithm"
+    constructorArgs:
+      - 80.0
+      - 20.0
+      - 40.0
+    configMethods:
+      - name: "withPositionInStream"
+        args: [1]
+      - name: "withLowerBound"
+
+  - id: "objectCount"
+    className: "abstraction.ObjectCount"
+
+
+
+bolts:
+  - id: "bolt-2"
+    className: "algorithms.ObjectCounterBolt"
+    parallelism: 1
+  - id: "bolt-3"
+    className: "algorithms.ObjectCounterBolt"
+    parallelism: 1
+
+# bolt definitions
+fusionbolts:
+  - id: "cusum-bolt"
+    className: "abstraction.GenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "cusumAlgorithm"]
+      - name: "withFields"
+        args:
+          - ["id","value","timestamp", "cusum"]
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
+      - "cusum"
+
+  - id: "counter-bolt"
+    className: "abstraction.GenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "objectCount"]
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
+      - "cusum"
 
 # spout definitions
-spouts:
+mqttspouts:
   - id: "spout-1"
     className: "consumers.MqttConsumerSpout"
     constructorArgs:
@@ -21,32 +67,41 @@ spouts:
       - "hello"
       - "health_monitor/blood_pressure"
     configMethods:
-      - name: "withFields"
-        args:
-          - ["id","value","timestamp"]
+#      - name: "withFields"
+#        args:
+#          - ["id","value","timestamp"]
       - name: "withClasses"
         args:
-          - ["java.lang.String","java.lang.Integer","java.lang.Long"]
+          - ["java.lang.String","java.lang.Double","java.lang.Long"]
       - name: "withRegex"
         args: [","]
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
     parallelism: 1
-
-# bolt definitions
-bolts:
-  - id: "bolt-1"
-    className: "abstraction.ShewhartAlgorithm"
-    parallelism: 2
-
 
 #stream definitions
 streams:
-  - name: "spout-1 --> bolt-1" # name isn't used (placeholder for logging, UI, etc.)
+  - name: "spout-1 --> cusum-bolt" # name isn't used (placeholder for logging, UI, etc.)
     from: "spout-1"
-    to: "bolt-1"
+    to: "cusum-bolt"
     grouping:
       type: FIELDS
       args: ["value"]
 
+  - name: "spout-1 --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
+    from: "spout-1"
+    to: "bolt-2"
+    grouping:
+      type: FIELDS
+      args: ["id"]
+
+  - name: "cusum-bolt --> counter-bolt" # name isn't used (placeholder for logging, UI, etc.)
+    from: "cusum-bolt"
+    to: "counter-bolt"
+    grouping:
+      type: SHUFFLE
 #
 #  - name: "spout-1 --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
 #    from: "spout-1"

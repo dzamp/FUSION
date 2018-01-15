@@ -28,13 +28,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement(localName = "stream")
 public class StreamDef {
-    @JacksonXmlProperty(localName = "name")
+
     private String name; // not used, placeholder for GUI, etc.
-    @JacksonXmlProperty(localName = "from")
+
     private String from;
-    @JacksonXmlProperty(localName = "to")
+
     private String to;
-    @JacksonXmlProperty(localName = "grouping")
+
     private GroupingDef grouping;
 
     public String getTo() {

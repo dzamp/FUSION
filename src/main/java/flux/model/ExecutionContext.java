@@ -66,6 +66,10 @@ public class ExecutionContext {
         return this.boltMap.get(id);
     }
 
+    public IRichSpout getSpout(String id) {
+        return this.spoutMap.get(id);
+    }
+
     public void addComponent(String id, Object value){
         this.componentMap.put(id, value);
     }

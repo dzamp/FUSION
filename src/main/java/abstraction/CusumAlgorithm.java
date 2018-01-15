@@ -40,7 +40,7 @@ public class CusumAlgorithm implements IAlgorithm, Serializable{
     }
 
 
-    public CusumAlgorithm withPosition(int pos){
+    public CusumAlgorithm withPositionInStream(int pos){
         this.position = pos;
         return this;
     }

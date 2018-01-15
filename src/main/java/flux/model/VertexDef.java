@@ -26,9 +26,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public abstract class VertexDef extends BeanDef {
 
     // default parallelism to 1 so if it's omitted, the topology will still function.
-    @JacksonXmlProperty(localName = "parallelism")
+//    @JacksonXmlProperty(localName = "parallelism")
     private int parallelism = 1;
-    @JacksonXmlProperty(localName = "numTasks")
+//    @JacksonXmlProperty(localName = "numTasks")
     private int numTasks = -1;
     private int onHeapMemoryLoad = -1;
     private int offHeapMemoryLoad = -1;

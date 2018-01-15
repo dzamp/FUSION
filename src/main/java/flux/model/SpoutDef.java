@@ -22,6 +22,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * Bean representation of a Storm spout.
  */
-@JacksonXmlRootElement(localName = "spout")
+//@JacksonXmlRootElement(localName = "spout")
 public class SpoutDef extends VertexDef {
+
 }
