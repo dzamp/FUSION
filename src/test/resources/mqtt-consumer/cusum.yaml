@@ -1,0 +1,58 @@
+name: "mqtt-shewhart"
+config:
+  topology.workers: 1
+  topology.debug: true
+
+
+#components:
+#  - id: "spout-count-emitter"
+#    className: "actions.SpoutEmitter"
+#    constructorArgs:
+#      - ["number"]
+#      - ["java.lang.Integer"]
+
+
+# spout definitions
+spouts:
+  - id: "spout-1"
+    className: "consumers.MqttConsumerSpout"
+    constructorArgs:
+      - "tcp://localhost:1883"
+      - "hello"
+      - "health_monitor/blood_pressure"
+    configMethods:
+      - name: "withFields"
+        args:
+          - ["id","value","timestamp"]
+      - name: "withClasses"
+        args:
+          - ["java.lang.String","java.lang.Integer","java.lang.Long"]
+      - name: "withRegex"
+        args: [","]
+    parallelism: 1
+
+# bolt definitions
+bolts:
+  - id: "bolt-1"
+    className: "abstraction.ShewhartAlgorithm"
+    parallelism: 2
+
+
+#stream definitions
+streams:
+  - name: "spout-1 --> bolt-1" # name isn't used (placeholder for logging, UI, etc.)
+    from: "spout-1"
+    to: "bolt-1"
+    grouping:
+      type: FIELDS
+      args: ["value"]
+
+#
+#  - name: "spout-1 --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
+#    from: "spout-1"
+#    to: "bolt-2"
+#    grouping:
+#      type: SHUFFLE
+
+
+
