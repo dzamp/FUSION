@@ -4,8 +4,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * Created by jim on 2/1/2018.
@@ -15,7 +14,6 @@ import java.util.Collections;
  * This cuts a field from the stream that you dont need. YTou have to respecify the fields of the stream to the bolt again
  */
 public class FieldFilter implements IAlgorithm, Serializable {
-
 
     protected String[] fieldsTobeRemoved;
 
@@ -48,8 +46,15 @@ public class FieldFilter implements IAlgorithm, Serializable {
 
     @Override
     public String[] getExtraFields() {
-        return null;
+        return new String[0];
     }
+//
+//    @Override
+//    public Map<String, List<String>> getConfig() {
+//        Map<String, List<String>> configMap =  new HashMap<>();
+//        configMap.put("REMOVE_FIELDS", Arrays.asList(fieldsTobeRemoved));
+//        return configMap;
+//    }
 
 
 }

@@ -22,42 +22,6 @@ components:
     className: "abstraction.ObjectCount"
 
 
-
-bolts:
-  - id: "bolt-2"
-    className: "algorithms.ObjectCounterBolt"
-    parallelism: 1
-  - id: "bolt-3"
-    className: "algorithms.ObjectCounterBolt"
-    parallelism: 1
-
-# bolt definitions
-fusionbolts:
-  - id: "cusum-bolt"
-    className: "abstraction.GenericBolt"
-    configMethods:
-      - name: "withAlgorithm"
-        args: [ ref : "cusumAlgorithm"]
-      - name: "withFields"
-        args:
-          - ["id","value","timestamp", "cusum"]
-    fields:
-      - "id"
-      - "value"
-      - "timestamp"
-      - "cusum"
-
-  - id: "counter-bolt"
-    className: "abstraction.GenericBolt"
-    configMethods:
-      - name: "withAlgorithm"
-        args: [ ref : "objectCount"]
-    fields:
-      - "id"
-      - "value"
-      - "timestamp"
-      - "cusum"
-
 # spout definitions
 mqttspouts:
   - id: "spout-1"
@@ -81,12 +45,52 @@ mqttspouts:
       - "timestamp"
     parallelism: 1
 
+
+bolts:
+  - id: "bolt-2"
+    className: "algorithms.ObjectCounterBolt"
+    parallelism: 1
+
+#  - id: "bolt-3"
+#    className: "algorithms.ObjectCounterBolt"
+#    parallelism: 1
+
+# bolt definitions
+fusionbolts:
+  - id: "cusum-bolt"
+    className: "abstraction.GenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "cusumAlgorithm"]
+#      - name: "withFields"
+#        args:
+#          - ["id","value","timestamp", "cusum"]
+#    fields:
+#      - "id"
+#      - "value"
+#      - "timestamp"
+#      - "cusum"
+
+  - id: "counter-bolt"
+    className: "abstraction.GenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "objectCount"]
+#    fields:
+#      - "id"
+#      - "value"
+#      - "timestamp"
+#      - "cusum"
+
+
+
 #stream definitions
 streams:
   - name: "spout-1 --> cusum-bolt" # name isn't used (placeholder for logging, UI, etc.)
     from: "spout-1"
     to: "cusum-bolt"
     grouping:
+      streamId: "stream1"
       type: FIELDS
       args: ["value"]
 
@@ -94,6 +98,7 @@ streams:
     from: "spout-1"
     to: "bolt-2"
     grouping:
+      streamId: "stream2"
       type: FIELDS
       args: ["id"]
 
@@ -101,7 +106,12 @@ streams:
     from: "cusum-bolt"
     to: "counter-bolt"
     grouping:
+      streamId: "stream3"
       type: SHUFFLE
+
+
+
+
 #
 #  - name: "spout-1 --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
 #    from: "spout-1"

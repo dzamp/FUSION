@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 import org.apache.storm.shade.org.eclipse.jetty.util.BlockingArrayQueue;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
@@ -15,10 +14,7 @@ import org.apache.storm.utils.Time;
 import org.apache.storm.utils.Utils;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
 
@@ -44,10 +40,10 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     protected Logger log;
     protected Map<String, List<String>> outcomingStreamsFieldsMap;
     protected String[] fieldNames = null;
-    protected String[] streamIds = null;
+    protected List<String> streamIds = null;
     protected MqttClient client;
     protected int qos = 1;
-
+    private boolean outgoingFieldsSet = false;
     protected OutputFieldsClassMapper mapper;
 //    protected OutputFieldsDeclarer declarer;
 
@@ -64,8 +60,9 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
         return this;
     }
 
-    public MqttConsumerSpout outboundStreams(String... streamIds) {
-        this.streamIds = streamIds;
+    public MqttConsumerSpout addOutGoingStream(String streamId) {
+        if (this.streamIds == null) new ArrayList<>();
+        this.streamIds.add(streamId);
         return this;
     }
 
@@ -93,7 +90,7 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     protected void setOutboundStreams() {
         this.outcomingStreamsFieldsMap = new HashMap<>();
         if (streamIds == null) //if no
-            this.streamIds = new String[]{Utils.DEFAULT_STREAM_ID};
+            this.streamIds = Arrays.asList(new String[]{Utils.DEFAULT_STREAM_ID});
         if (fieldNames == null) throw new RuntimeException("No fields specified ");
         //todo throw exception
         //fill the outcomingStreamMap to be used by the declarer
@@ -206,11 +203,12 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         //prepare the declarer
-        setOutboundStreams();
+//        setOutboundStreams();
 //        this.declarer = declarer;
-        this.outcomingStreamsFieldsMap.forEach(
-                (stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
-
+        if (this.outcomingStreamsFieldsMap != null) {
+            this.outcomingStreamsFieldsMap.forEach(
+                    (stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
+        }
     }
 
     @Override
@@ -222,5 +220,13 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     @Override
     public void setFields(String... fieldNames) {
         withFields(fieldNames);
+        outgoingFieldsSet = true;
+        setOutboundStreams();
+    }
+
+    @Override
+    public void addOutgoingStreamName(String streamName) {
+        if (this.streamIds == null) this.streamIds = new ArrayList<>();
+        streamIds.add(streamName);
     }
 }

@@ -5,11 +5,15 @@ import org.apache.storm.tuple.Values;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ObjectCount implements IAlgorithm, Serializable {
     private HashMap<Object,Integer> countMap;
 
-
+    public ObjectCount(){
+        this.countMap = new HashMap<>();
+    }
 
     @Override
     public Values executeAlgorithm(Tuple tuple) {
@@ -26,4 +30,6 @@ public class ObjectCount implements IAlgorithm, Serializable {
     public String[] getExtraFields() {
         return null;
     }
+
+
 }

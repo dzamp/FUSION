@@ -1,10 +1,8 @@
 package abstraction;
 
-import consumers.FusionIRichSpout;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IRichBolt;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
@@ -18,58 +16,61 @@ public class GenericBolt implements FusionIRichBolt {
     protected TopologyContext topologyContext;
     protected OutputCollector collector;
     protected Map configMap;
-//    protected List<BoltEmitter> actions;
+    //    protected List<BoltEmitter> actions;
     protected IAlgorithm algorithm;
-//    protected OutputFieldsDeclarer declarer;
+    //    protected OutputFieldsDeclarer declarer;
     //convert to map of streamName to field list
-    protected Map<String, List<String>> incomingStreamsFieldsMap;
-    protected Map<String, List<String>> outcomingStreamsFieldsMap;
-
-    private String[] fieldNames = null;
-    private String[] streamIds = null;
+    protected Map<String, List<String>> outgoingSteamFieldsMap;
+    private boolean outgoingFieldsSet = false;
+    private String[] incomingfieldNames = null;
+    private String[] outgoingFieldNames = null;
+    private List<String> streamIds = null;
 
     public GenericBolt withAlgorithm(IAlgorithm algo) {
         this.algorithm = algo;
         return this;
     }
 
-    public GenericBolt outboundStreams(String... streamIds) {
-        this.streamIds = streamIds;
+
+    public GenericBolt withOutgoingStreams(String ... streamIds){
+        if(this.streamIds == null) new ArrayList<>();
+        this.streamIds.addAll(Arrays.asList(streamIds));
+        return this;
+    }
+
+
+    public GenericBolt addOutgoingStream(String  streamId) {
+        if(streamIds == null) this.streamIds = new ArrayList<>();
+        this.streamIds.add(streamId);
         return this;
 
     }
 
     public GenericBolt withFields(String... fieldNames) {
-        this.fieldNames = fieldNames;
+        this.incomingfieldNames = fieldNames;
         return this;
     }
 
-    private void setInboundStreams() {
-        //first get the incoming streams
-        incomingStreamsFieldsMap = new HashMap<>();
-        for (String stream : topologyContext.getThisInputFields().keySet()) {
-            List<String> fields = topologyContext.getThisInputFields().get(stream).get(Utils.DEFAULT_STREAM_ID);
-            incomingStreamsFieldsMap.put(stream, new ArrayList<>(fields));
-        }
-    }
 
-    private void setOutboundStreams() {
-        outcomingStreamsFieldsMap = new HashMap<>();
+    private void setOutgoingFields() {
+        outgoingSteamFieldsMap = new HashMap<>();
         if (streamIds == null) //if no
-            this.streamIds = new String[]{Utils.DEFAULT_STREAM_ID};
-        if (fieldNames == null)
-            fieldNames = incomingStreamsFieldsMap.values().iterator().next().toArray(new String[0]);
+            this.streamIds = Arrays.asList(Utils.DEFAULT_STREAM_ID);
+
         //if the algorithm adds new fields to the stream add them here
         if (algorithm.getExtraFields() != null) {
-            fieldNames = (String[]) ArrayUtils.addAll(fieldNames, algorithm.getExtraFields());
+            outgoingFieldNames = (String[]) ArrayUtils.addAll(incomingfieldNames, algorithm.getExtraFields());
         }
-        Set<String> removeDuplicates = new HashSet<>();
-        removeDuplicates.addAll(Arrays.asList(fieldNames));
-        fieldNames = removeDuplicates.toArray(new String[removeDuplicates.size()]);
-        //fill the outcomingStreamMap to be used by the declarer
-        for (String stream : streamIds) {
-            outcomingStreamsFieldsMap.put(stream, Arrays.asList(fieldNames));
+        if (outgoingFieldNames != null) {
+            Set<String> removeDuplicates = new LinkedHashSet<>();
+            removeDuplicates.addAll(Arrays.asList(outgoingFieldNames));
+            outgoingFieldNames = removeDuplicates.toArray(new String[removeDuplicates.size()]);
+            //fill the outcomingStreamMap to be used by the declarer
+            for (String stream : streamIds) {
+                outgoingSteamFieldsMap.put(stream, Arrays.asList(outgoingFieldNames));
+            }
         }
+        outgoingFieldsSet = true;
     }
 
     @Override
@@ -77,21 +78,14 @@ public class GenericBolt implements FusionIRichBolt {
         this.topologyContext = topologyContext;
         this.collector = outputCollector;
         this.configMap = map;
-//        this.actions = new ArrayList<>();
-
     }
-
-//    public void addAction(BoltEmitter boltEmitter) {
-//        actions.add(boltEmitter);
-//    }
 
 
     public void emit(Values values) {
         if (values != null && values.size() > 0) {
-            this.outcomingStreamsFieldsMap.forEach((stream, stringFields) ->
-                    //no need to use emit(values), since they it maps to this emit with stream-id = "default"
-                    collector.emit(stream, values)
-            );
+            if(this.outgoingSteamFieldsMap!=null)
+                this.outgoingSteamFieldsMap.forEach((stream, stringFields) -> collector.emit(stream, values));
+            //no need to use emit(values), since they it maps to this emit with stream-id = "default"
         }
     }
 
@@ -120,8 +114,15 @@ public class GenericBolt implements FusionIRichBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         //Again the declare method that takes no stream argument is the same method call
-        setOutboundStreams();
-        this.outcomingStreamsFieldsMap.forEach((stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
+        //here we register the fields we are going to send
+        //now there is the case that we are not going to send any fields
+        //but also the case that they are not configured
+        //Flux handles the setting of the fields if we specify FusionBolts in the yaml, using the FusionIRichBolt. If Flux sets the fields(even null) the incomingFieldsSet will be true;
+        //That means that if fieldsNamesSet = true and outgoingfields == null that this is a terminal bolt.
+        if (!outgoingFieldsSet)
+            setOutgoingFields();
+        if(this.outgoingSteamFieldsMap!=null)
+            this.outgoingSteamFieldsMap.forEach((stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
 
     }
 
@@ -131,7 +132,30 @@ public class GenericBolt implements FusionIRichBolt {
     }
 
     @Override
-    public void setFields(String... fieldNames) {
-        this.withFields(fieldNames);
+    public void setFields(boolean terminal,String... fieldNames) {
+        withFields(fieldNames);
+        if(!terminal)
+            setOutgoingFields();
+        if(terminal) outgoingFieldsSet = true;
+        if (fieldNames == null) {//there is a chance that this node will be terminal, therefore null for its outgoing streams and fields
+            this.outgoingFieldNames = null;
+            this.outgoingSteamFieldsMap = new HashMap<>();
+        }
+    }
+
+    @Override
+    public void addOutgoingStreamName(String streamNames) {
+        addOutgoingStream(streamNames);
+    }
+
+    @Override
+    public String[] getOutgoingFields() {
+        if(outgoingFieldsSet) return this.outgoingFieldNames;
+        else return null;
+    }
+
+    @Override
+    public IAlgorithm getAlgorithm() {
+        return this.algorithm;
     }
 }

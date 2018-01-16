@@ -3,8 +3,9 @@ package abstraction;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
-import java.io.Serializable;
 
+import java.io.Serializable;
+import java.util.*;
 
 
 //TODO this algortihm will emit new fields! how to send them to Generic Bolt?
@@ -49,6 +50,8 @@ public class CusumAlgorithm implements IAlgorithm, Serializable{
 
     @Override
     public Values executeAlgorithm(Tuple tuple) {
+        Values values = new Values();
+        values.addAll(tuple.getValues());
         double upperBoundSignal = 0, lowerBoundSignal = 0;
         double currentValue  = tuple.getDouble(position);
 
@@ -65,7 +68,8 @@ public class CusumAlgorithm implements IAlgorithm, Serializable{
             negativeCusum = 0;
             //upper threshold breached here
             //todo add the new field to the generic bolt fields
-            return new Values(tuple,upperBoundSignal);
+            values.add(upperBoundSignal);
+            return values;
         }
         if (negativeCusum < -threshold) {
             lowerBoundSignal = -1;
@@ -73,17 +77,21 @@ public class CusumAlgorithm implements IAlgorithm, Serializable{
             negativeCusum = 0;
             //lower threshold breached here
             //todo add the new field to the generic bolt fields
-            return new Values(tuple,lowerBoundSignal);
+
+            values.add(lowerBoundSignal);
+            return values;
         }
-
-
-        return new Values(tuple, /*no change, send a zero field*/ 0);
+        //else add ret as zero
+        values.add(0);
+        return values;
     }
 
     @Override
     public String[] getExtraFields() {
         return new String[]{"cusum"};
     }
+
+
 
 
 }

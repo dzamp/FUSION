@@ -630,46 +630,93 @@ public class FluxBuilder {
 
         //start from spouts and give the topology fields
         //if we have usual spouts or mqttSpouts we have to find the fields that are being sent
-        for (MqttSpoutDef mqttSpoutDef : mqttSpoutDefs) {
-            String[] fields = mqttSpoutDef.getFields();
-            ((FusionIRichSpout) context.getSpout(mqttSpoutDef.getId())).setFields(fields);
-            //find from the streams where does this spout participate
-            Stack<FusionBoltDef> participatingBolts = new Stack<>();
-            Set<StreamDef> participatingStreams = new HashSet<>();
-            //get the start of the streamDefs where this spout participates
-            for (StreamDef streamDef : streamDefs) {
-                if (streamDef.getFrom().equals(mqttSpoutDef.getId())) {
-                    BoltDef boltdef = context.getTopologyDef().getBoltDef(streamDef.getTo());
-                    if (boltdef instanceof FusionBoltDef) {
-                        FusionBoltDef fusionBoltDef = context.getTopologyDef().getFusionBoltDef(streamDef.getTo());
-                        participatingBolts.add(fusionBoltDef);
-                        fusionBoltDef.setFields(mqttSpoutDef.fields);
-                        ((FusionIRichBolt) context.getBolt(fusionBoltDef.getId())).setFields(fusionBoltDef.getFields());
+        for (SpoutDef spoutDef: spoutDefs) {
+            if (spoutDef instanceof MqttSpoutDef) {
+                MqttSpoutDef mqttSpoutDef = (MqttSpoutDef) spoutDef;
+                String[] fields = mqttSpoutDef.getFields();
+                //find from the streams where does this spout participate
+                Stack<FusionBoltDef> participatingBolts = new Stack<>();
+
+                for (StreamDef streamDef : streamDefs) {
+                    String streamId = null;
+                    if (streamDef.getFrom().equals(mqttSpoutDef.getId())) {
+                        if (streamDef.getGrouping().getStreamId() != null) {
+                            streamId = streamDef.getGrouping().getStreamId();
+                            setStreamIdtoComponent(context, mqttSpoutDef, streamId);
+                        }
+                        ((FusionIRichSpout) context.getSpout(mqttSpoutDef.getId())).setFields(fields);
+                        BoltDef boltdef = context.getTopologyDef().getBoltDef(streamDef.getTo());
+                        if (boltdef instanceof FusionBoltDef) {
+                            FusionBoltDef fusionBoltDef = context.getTopologyDef().getFusionBoltDef(streamDef.getTo());
+//                        participatingBolts.add(fusionBoltDef);
+                            findParticipatingBoltsInStreams(fusionBoltDef, streamDefs, context, mqttSpoutDef.fields);
+//                        setStreamIdtoComponent(context, fusionBoltDef, streamId);
+//                        fusionBoltDef.setFields(mqttSpoutDef.fields);
+//                        ((FusionIRichBolt) context.getBolt(fusionBoltDef.getId())).setFields(fusionBoltDef.getFields());
+                        }
                     }
                 }
-            }
-            for (FusionBoltDef bolt : participatingBolts) {
-                findParticipatingBoltsInStreams(bolt, streamDefs, context);
+                for (FusionBoltDef bolt : participatingBolts) {
+//                findParticipatingBoltsInStreams(bolt, streamDefs, context, null);
+                }
             }
         }
-
     }
 
-    public static void findParticipatingBoltsInStreams(FusionBoltDef fusionBoltDef, List<StreamDef> streamDefs, ExecutionContext context) {
+
+    public static void findParticipatingBoltsInStreams(FusionBoltDef fusionBoltDefFrom, List<StreamDef> streamDefs, ExecutionContext context, String[] fields) {
         Stack<FusionBoltDef> participatingBolts = new Stack<>();
+        FusionIRichBolt from = (FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId());
+        boolean isTerminal = true;
         for (StreamDef streamDef : streamDefs) {
-            if (streamDef.getFrom().equals(fusionBoltDef.getId())) {
-                FusionBoltDef fusionBoltDefTo = context.getTopologyDef().getFusionBoltDef(streamDef.getTo());
-                participatingBolts.add(fusionBoltDefTo);
-                fusionBoltDefTo.setFields(fusionBoltDef.fields);
-                ((FusionIRichBolt) context.getBolt(fusionBoltDefTo.getId())).setFields(fusionBoltDefTo.getFields());
+            String streamId = null;
+            if (streamDef.getFrom().equals(fusionBoltDefFrom.getId())) {
+                isTerminal = false;
+
+                if (streamDef.getGrouping().getStreamId()!=null) {
+                    streamId = streamDef.getGrouping().getStreamId();
+                    setStreamIdtoComponent(context, fusionBoltDefFrom, streamId);
+                }
+                fusionBoltDefFrom.setFields(fields);
+                from.setFields(false,fields);
+                BoltDef boltDefTo = context.getTopologyDef().getBoltDef(streamDef.getTo());
+                if (boltDefTo instanceof FusionBoltDef) {
+                    FusionBoltDef fusionBoltDefTo = (FusionBoltDef) boltDefTo;
+//                    participatingBolts.add(fusionBoltDefTo);
+//                    FusionIRichBolt to = (FusionIRichBolt) context.getBolt(fusionBoltDefTo.getId());
+                    findParticipatingBoltsInStreams(fusionBoltDefTo,streamDefs,context,from.getOutgoingFields());
+                }
             }
+        }
+        if (isTerminal) {
+            ((FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId())).setFields(true,fields);
         }
         while (!participatingBolts.empty()) {
-            findParticipatingBoltsInStreams(participatingBolts.pop(), streamDefs, context);
+//            findParticipatingBoltsInStreams(participatingBolts.pop(), streamDefs, context, null);
         }
     }
 
+    private static void setStreamIdtoComponent(ExecutionContext context, VertexDef vertex, String streamId) {
+        if (vertex instanceof MqttSpoutDef) {
+            ((FusionIRichSpout) context.getSpout(vertex.getId()))
+                    .addOutgoingStreamName(streamId);
+        }
+        if (vertex instanceof FusionBoltDef) {
+            ((FusionIRichBolt) context.getBolt(vertex.getId()))
+                    .addOutgoingStreamName(streamId);
+        }
+    }
+
+
+    public static String[] getAddedFieldsFromAlgorithm(FusionBoltDef fusionBoltDef, FusionIRichBolt from) {
+        if (from.getAlgorithm().getExtraFields() != null) {
+            LinkedHashSet<String> hashSetOfFields = new LinkedHashSet<>();// preserve ordering
+            hashSetOfFields.addAll(Arrays.asList(fusionBoltDef.fields));
+            hashSetOfFields.addAll(Arrays.asList(from.getAlgorithm().getExtraFields()));
+            return hashSetOfFields.toArray(new String[hashSetOfFields.size()]);
+        }
+        return fusionBoltDef.fields;
+    }
 
     /**
      * Determine if the given constructor/method parameter types are compatible given arguments List. Consider if

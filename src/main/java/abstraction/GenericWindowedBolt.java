@@ -66,6 +66,7 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
     }
 
     private void setOutboundStreams() {
+        setInboundStreams();
         outcomingStreamsFieldsMap = new HashMap<>();
         if (streamIds == null) //if no
             this.streamIds = new String[]{Utils.DEFAULT_STREAM_ID}; //default
