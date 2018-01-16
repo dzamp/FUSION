@@ -1,6 +1,7 @@
 package abstraction;
 
 //import actions.BoltEmitter;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -18,7 +19,7 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
     protected TopologyContext topologyContext;
     protected OutputCollector collector;
     protected Map configMap;
-//    protected List<BoltEmitter> actions;
+    //    protected List<BoltEmitter> actions;
     protected IWindowedAlgorithm algorithm;
     protected OutputFieldsDeclarer declarer;
     //convert to map of streamName to field list
@@ -106,8 +107,9 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        this.declarer = declarer;
-        this.outcomingStreamsFieldsMap.forEach((stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
+        if (this.outcomingStreamsFieldsMap != null) {
+            this.outcomingStreamsFieldsMap.forEach((stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
+        }
     }
 
     @Override
