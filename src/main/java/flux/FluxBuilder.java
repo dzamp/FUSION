@@ -642,29 +642,29 @@ public class FluxBuilder {
                     if (streamDef.getFrom().equals(mqttSpoutDef.getId())) {
                         if (streamDef.getGrouping().getStreamId() != null) {
                             streamId = streamDef.getGrouping().getStreamId();
-                            setStreamIdtoComponent(context, mqttSpoutDef, streamId);
+                            addStreamToVertex(context, mqttSpoutDef, streamId);
                         }
                         ((FusionIRichSpout) context.getSpout(mqttSpoutDef.getId())).setFields(fields);
                         BoltDef boltdef = context.getTopologyDef().getBoltDef(streamDef.getTo());
                         if (boltdef instanceof FusionBoltDef) {
                             FusionBoltDef fusionBoltDef = context.getTopologyDef().getFusionBoltDef(streamDef.getTo());
-//                        participatingBolts.add(fusionBoltDef);
-                            findParticipatingBoltsInStreams(fusionBoltDef, streamDefs, context, mqttSpoutDef.fields);
-//                        setStreamIdtoComponent(context, fusionBoltDef, streamId);
-//                        fusionBoltDef.setFields(mqttSpoutDef.fields);
-//                        ((FusionIRichBolt) context.getBolt(fusionBoltDef.getId())).setFields(fusionBoltDef.getFields());
+                            findConnectingBoltsDFS(fusionBoltDef, streamDefs, context, mqttSpoutDef.fields);
                         }
                     }
-                }
-                for (FusionBoltDef bolt : participatingBolts) {
-//                findParticipatingBoltsInStreams(bolt, streamDefs, context, null);
                 }
             }
         }
     }
 
-
-    public static void findParticipatingBoltsInStreams(FusionBoltDef fusionBoltDefFrom, List<StreamDef> streamDefs, ExecutionContext context, String[] fields) {
+    /**
+     * This algorithm performs a DFS starting from a connected spout with a bolt and searches subsequent connections of this bolt with other bolts
+     * setting their fields from the previous connected bolt plus any extra fields specified by the contained algorithm. This is a recursive method
+     * @param fusionBoltDefFrom
+     * @param streamDefs
+     * @param context
+     * @param fields
+     */
+    public static void findConnectingBoltsDFS(FusionBoltDef fusionBoltDefFrom, List<StreamDef> streamDefs, ExecutionContext context, String[] fields) {
         Stack<FusionBoltDef> participatingBolts = new Stack<>();
         FusionIRichBolt from = (FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId());
         boolean isTerminal = true;
@@ -675,28 +675,30 @@ public class FluxBuilder {
 
                 if (streamDef.getGrouping().getStreamId()!=null) {
                     streamId = streamDef.getGrouping().getStreamId();
-                    setStreamIdtoComponent(context, fusionBoltDefFrom, streamId);
+                    addStreamToVertex(context, fusionBoltDefFrom, streamId);
                 }
                 fusionBoltDefFrom.setFields(fields);
                 from.setFields(false,fields);
                 BoltDef boltDefTo = context.getTopologyDef().getBoltDef(streamDef.getTo());
                 if (boltDefTo instanceof FusionBoltDef) {
                     FusionBoltDef fusionBoltDefTo = (FusionBoltDef) boltDefTo;
-//                    participatingBolts.add(fusionBoltDefTo);
-//                    FusionIRichBolt to = (FusionIRichBolt) context.getBolt(fusionBoltDefTo.getId());
-                    findParticipatingBoltsInStreams(fusionBoltDefTo,streamDefs,context,from.getOutgoingFields());
+                    findConnectingBoltsDFS(fusionBoltDefTo,streamDefs,context,from.getOutgoingFields());
                 }
             }
         }
         if (isTerminal) {
+            //if node is terminal then we have to explicity invoke setFields with true parameter, in order to avoid building the outcoming fields
             ((FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId())).setFields(true,fields);
-        }
-        while (!participatingBolts.empty()) {
-//            findParticipatingBoltsInStreams(participatingBolts.pop(), streamDefs, context, null);
         }
     }
 
-    private static void setStreamIdtoComponent(ExecutionContext context, VertexDef vertex, String streamId) {
+    /**
+     * Adds a StreamId to a vertexDef, a component that is either a Fusionbolt or a mqttSpout
+     * @param context
+     * @param vertex
+     * @param streamId
+     */
+    private static void addStreamToVertex(ExecutionContext context, VertexDef vertex, String streamId) {
         if (vertex instanceof MqttSpoutDef) {
             ((FusionIRichSpout) context.getSpout(vertex.getId()))
                     .addOutgoingStreamName(streamId);
