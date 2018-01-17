@@ -1,6 +1,5 @@
 package consumers;
 
-import actions.ClassConverter;
 import org.apache.storm.kafka.KeyValueScheme;
 import org.apache.storm.kafka.StringScheme;
 import org.apache.storm.tuple.Fields;
@@ -14,42 +13,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FusionScheme extends StringScheme implements KeyValueScheme {
-    private String[] fieldNames;
-    private static final Charset UTF8_CHARSET;
     public static final String STRING_SCHEME_KEY = "str";
-    private String regex = null;
-    protected List<ClassConverter<?>> converters=null;
-    protected List<Class> classes = null;
-    protected OutputFieldsClassMapper mapper;
-
-    public FusionScheme() {
-        mapper = new OutputFieldsClassMapper();
-    }
+    private static final Charset UTF8_CHARSET;
 
     static {
         UTF8_CHARSET = StandardCharsets.UTF_8;
     }
 
+    protected List<Class> classes = null;
+    protected OutputFieldsClassMapper mapper;
+    private String[] fieldNames;
 
-
-   public FusionScheme withRegex(String regex) {
-       mapper.withRegex(regex);
-       return this;
+    public FusionScheme() {
+        mapper = new OutputFieldsClassMapper();
     }
-
-    public FusionScheme withFields(String[] fieldNames){
-        this.fieldNames = fieldNames;
-        return this;
-    }
-
-    public FusionScheme withClasses(String[] classNames){
-        mapper.withClasses(classNames);
-        return this;
-    }
-
-
-
-
 
     public static String deserializeString(ByteBuffer string) {
         if (string.hasArray()) {
@@ -60,19 +37,31 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
         }
     }
 
+    public FusionScheme withRegex(String regex) {
+        mapper.withRegex(regex);
+        return this;
+    }
+
+    public FusionScheme withFields(String[] fieldNames) {
+        this.fieldNames = fieldNames;
+        return this;
+    }
+
+    public FusionScheme withClasses(String[] classNames) {
+        mapper.withClasses(classNames);
+        return this;
+    }
+
     @Override
     public List<Object> deserializeKeyAndValue(final ByteBuffer key, final ByteBuffer value) {
-//        String key = byteBuffer.toString();
-//        String value = byteBuffer1.toString();
-//        return ImmutableList.of(key, value);
-        if ( key == null ) {
+        if (key == null) {
             return deserialize(value);
         }
         String keyString = StringScheme.deserializeString(key);
         String valueString = StringScheme.deserializeString(value);
         //TODO INSERT HERE PATTERN TO SPLIT!!
-        String[] stringValues =null;
-        if(regex!=null){
+        String[] stringValues = null;
+        if (mapper.regex != null) {
             return mapper.mapToValues(valueString);
         }
 
@@ -86,15 +75,15 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
     public List<Object> deserialize(ByteBuffer ser) {
         String stringValue = deserializeString(ser);
         String[] values = null;
-        if(regex!=null) {
-            values= stringValue.split(regex);
+        if (mapper.regex != null) {
+            values = stringValue.split(mapper.regex);
             return mapper.mapToValues(stringValue);
         }
         return new Values(stringValue);
     }
 
     private void setClasses(String... classes) {
-       if( this.classes ==null) this.classes= new ArrayList<>();
+        if (this.classes == null) this.classes = new ArrayList<>();
         for (String clazz : classes)
             try {
                 this.classes.add(Class.forName(clazz));
@@ -104,10 +93,8 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
     }
 
 
-
-
     @Override
     public Fields getOutputFields() {
-            return new Fields(fieldNames);
+        return new Fields(fieldNames);
     }
 }

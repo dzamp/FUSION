@@ -19,8 +19,13 @@ package flux;
 
 import abstraction.FusionIRichBolt;
 import consumers.FusionIRichSpout;
+import consumers.MqttConsumerSpout;
 import flux.fusion.StreamFieldsManager;
 import flux.model.*;
+import flux.model.extended.FusionBoltDef;
+import flux.model.extended.KafkaSpoutConfigDef;
+import flux.model.extended.MqttSpoutConfigDef;
+import flux.model.extended.MqttSpoutDef;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.CustomStreamGrouping;
@@ -46,13 +51,6 @@ public class FluxBuilder {
     public static Config buildConfig(TopologyDef topologyDef) {
         // merge contents of `config` into topology config
         Config conf = new Config();
-        // Map<String,Object> config = new HashMap<>();
-        // topologyDef.getConfig().forEach((s, o) -> {if (o.toString().equals("true") || o.toString().equals("false")){
-        //    if(o instanceof String) config.put(s,Boolean.valueOf((String)o));
-        //    if(o instanceof Boolean) config.put(s,o);
-        // }else{
-        //     config.put(s,o);
-        // }});
         conf.putAll(topologyDef.getConfig());
         return conf;
     }
@@ -87,11 +85,9 @@ public class FluxBuilder {
         if (topologyDef.isDslTopology()) {
             // This is a DSL (YAML, etc.) topology...
             LOG.info("Detected DSL topology...");
-
             TopologyBuilder builder = new TopologyBuilder();
-//            topologyDef.consolidateSpouts();
-//            topologyDef.consolidateBolts();
             // create spouts
+            buildSpoutConfigs(context);
             buildSpouts(context, builder);
 
             // we need to be able to lookup bolts by id, then switch based
@@ -110,6 +106,17 @@ public class FluxBuilder {
             topology = buildExternalTopology(def, context);
         }
         return topology;
+    }
+
+    private static void buildSpoutConfigs(ExecutionContext context) {
+        if (context.getTopologyDef().getKafkaconfig() != null && context.getTopologyDef().getKafkaconfig().size() > 0) {
+            for(KafkaSpoutConfigDef def : context.getTopologyDef().getKafkaconfig())
+            context.addComponent(def.getId(),def);
+        }
+        if (context.getTopologyDef().getMqttconfig() != null && context.getTopologyDef().getMqttconfig().size() > 0) {
+            for(MqttSpoutConfigDef def : context.getTopologyDef().getMqttconfig())
+                context.addComponent(def.getId(),def);
+        }
     }
 
     /**
@@ -391,6 +398,7 @@ public class FluxBuilder {
 
     private static void buildSpouts(ExecutionContext context, TopologyBuilder builder) throws ClassNotFoundException,
             NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException {
+
         for (SpoutDef sd : context.getTopologyDef().getSpouts()) {
             IRichSpout spout = buildSpout(sd, context);
             SpoutDeclarer declarer = builder.setSpout(sd.getId(), spout, sd.getParallelism());
@@ -626,12 +634,15 @@ public class FluxBuilder {
     public static void buildStreamDeclarers(ExecutionContext context, TopologyBuilder builder) {
         List<StreamDef> streamDefs = context.getTopologyDef().getStreams();
         List<SpoutDef> spoutDefs = context.getTopologyDef().getSpouts();
-        List<MqttSpoutDef> mqttSpoutDefs = context.getTopologyDef().getMqttspouts();
+//        List<MqttSpoutDef> mqttSpoutDefs = context.getTopologyDef().getMqttspouts();
 
         //start from spouts and give the topology fields
         //if we have usual spouts or mqttSpouts we have to find the fields that are being sent
-        for (SpoutDef spoutDef: spoutDefs) {
-            if (spoutDef instanceof MqttSpoutDef) {
+        for (SpoutDef spoutDef : spoutDefs) {
+            IRichSpout spout = context.getSpout(spoutDef.getId());
+            if( spout instanceof MqttConsumerSpout /*|| spout instanceof*/ ){
+//            if (spoutDef instanceof MqttSpoutDef) {
+                //todo SHIIIIIT
                 MqttSpoutDef mqttSpoutDef = (MqttSpoutDef) spoutDef;
                 String[] fields = mqttSpoutDef.getFields();
                 //find from the streams where does this spout participate
@@ -659,6 +670,7 @@ public class FluxBuilder {
     /**
      * This algorithm performs a DFS starting from a connected spout with a bolt and searches subsequent connections of this bolt with other bolts
      * setting their fields from the previous connected bolt plus any extra fields specified by the contained algorithm. This is a recursive method
+     *
      * @param fusionBoltDefFrom
      * @param streamDefs
      * @param context
@@ -673,27 +685,28 @@ public class FluxBuilder {
             if (streamDef.getFrom().equals(fusionBoltDefFrom.getId())) {
                 isTerminal = false;
 
-                if (streamDef.getGrouping().getStreamId()!=null) {
+                if (streamDef.getGrouping().getStreamId() != null) {
                     streamId = streamDef.getGrouping().getStreamId();
                     addStreamToVertex(context, fusionBoltDefFrom, streamId);
                 }
                 fusionBoltDefFrom.setFields(fields);
-                from.setFields(false,fields);
+                from.setFields(false, fields);
                 BoltDef boltDefTo = context.getTopologyDef().getBoltDef(streamDef.getTo());
                 if (boltDefTo instanceof FusionBoltDef) {
                     FusionBoltDef fusionBoltDefTo = (FusionBoltDef) boltDefTo;
-                    findConnectingBoltsDFS(fusionBoltDefTo,streamDefs,context,from.getOutgoingFields());
+                    findConnectingBoltsDFS(fusionBoltDefTo, streamDefs, context, from.getOutgoingFields());
                 }
             }
         }
         if (isTerminal) {
             //if node is terminal then we have to explicity invoke setFields with true parameter, in order to avoid building the outcoming fields
-            ((FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId())).setFields(true,fields);
+            ((FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId())).setFields(true, fields);
         }
     }
 
     /**
      * Adds a StreamId to a vertexDef, a component that is either a Fusionbolt or a mqttSpout
+     *
      * @param context
      * @param vertex
      * @param streamId

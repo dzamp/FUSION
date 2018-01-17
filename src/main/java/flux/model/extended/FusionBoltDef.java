@@ -1,4 +1,6 @@
-package flux.model;
+package flux.model.extended;
+
+import flux.model.BoltDef;
 
 public class FusionBoltDef extends BoltDef {
     public String[] fields = null;

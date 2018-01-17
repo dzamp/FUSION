@@ -1,20 +1,20 @@
 package consumers;
 
 import actions.ClassConverter;
-import org.apache.log4j.Logger;
 import org.apache.storm.tuple.Values;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OutputFieldsClassMapper implements Serializable{
+public class OutputFieldsClassMapper implements Serializable {
 
     protected List<ClassConverter<?>> converters = null;
     protected List<Class> classes = null;
     protected String regex = null;
-//    protected Logger log;
-    public OutputFieldsClassMapper( String ...classNames){
+
+    //    protected Logger log;
+    public OutputFieldsClassMapper(String... classNames) {
         setClasses(classNames);
         resolveClassConverters(classNames);
     }
@@ -23,27 +23,27 @@ public class OutputFieldsClassMapper implements Serializable{
 
     }
 
-    public  OutputFieldsClassMapper withRegex(String regex){
+    public OutputFieldsClassMapper withRegex(String regex) {
         this.regex = regex;
-        return  this;
+        return this;
     }
 
-    public  OutputFieldsClassMapper withClasses(String ...classNames){
+    public OutputFieldsClassMapper withClasses(String... classNames) {
         setClasses(classNames);
         resolveClassConverters(classNames);
-        return  this;
+        return this;
     }
 
     private void setClasses(String... classNames) {
         this.classes = new ArrayList<>();
-        for (String clazz : classNames)
-            try {
-                this.classes.add(Class.forName(clazz));
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+        if (classNames != null)
+            for (String clazz : classNames)
+                try {
+                    this.classes.add(Class.forName(clazz));
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
     }
-
 
 
     private void resolveClassConverters(String[] classes) {

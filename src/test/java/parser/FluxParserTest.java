@@ -33,6 +33,7 @@ public class FluxParserTest extends Flux {
     protected static Config conf = null;
     protected StormTopology topology = null;
     protected int sleeptime = 10;
+
     protected static void runCli(CommandLine cmd) throws Exception {
         instance = new FluxParserTest();
         boolean dumpYaml = cmd.hasOption("dump-yaml");

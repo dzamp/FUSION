@@ -1,6 +1,6 @@
 package consumers;
 
-import actions.SpoutAction;
+import flux.model.extended.MqttSpoutConfigDef;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -29,52 +29,23 @@ import java.util.concurrent.BlockingQueue;
  * Otherwise in case we want to emit to only one bolt we might as well use the second constructor and supply only one emitAction
  */
 public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
-    protected String brokerUrl;
-    protected String clientId;
-    protected String topic;
-    protected Map configMap;
+
+
+    private final MqttConfig config;
     protected BlockingQueue<Pair<String, MqttMessage>> messageQueue;
+    protected Map<String, List<String>> outcomingStreamsFieldsMap;
     protected SpoutOutputCollector collector;
     protected TopologyContext ctx;
-    protected List<SpoutAction> emitActions = null;
     protected Logger log;
-    protected Map<String, List<String>> outcomingStreamsFieldsMap;
-    protected String[] fieldNames = null;
-    protected List<String> streamIds = null;
     protected MqttClient client;
-    protected int qos = 1;
     private boolean outgoingFieldsSet = false;
-    protected OutputFieldsClassMapper mapper;
-//    protected OutputFieldsDeclarer declarer;
+    private Map configMap = null;
 
-    public MqttConsumerSpout(String brokerUrl, String clientId, String topic) {
-        this.brokerUrl = brokerUrl;
-        this.clientId = clientId;
-        this.topic = topic;
-        this.mapper = new OutputFieldsClassMapper();
+
+    public MqttConsumerSpout(MqttSpoutConfigDef def) {
+        this.config = def.createMqttConfig();
     }
 
-
-    public MqttConsumerSpout withFields(String... fieldNames) {
-        this.fieldNames = fieldNames;
-        return this;
-    }
-
-    public MqttConsumerSpout addOutGoingStream(String streamId) {
-        if (this.streamIds == null) new ArrayList<>();
-        this.streamIds.add(streamId);
-        return this;
-    }
-
-    public MqttConsumerSpout withRegex(String regex) {
-        mapper.withRegex(regex);
-        return this;
-    }
-
-    public MqttConsumerSpout withClasses(String... classNames) {
-        mapper.withClasses(classNames);
-        return this;
-    }
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
@@ -83,19 +54,18 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
         this.ctx = context;
         messageQueue = new BlockingArrayQueue<>();
         log = Logger.getLogger(this.getClass());
-        setMqttClientConnection(this.brokerUrl, this.clientId);
-//        setOutboundStreams();
+        setMqttClientConnection(this.config.getBrokerUrl(), this.config.getClientId());
     }
 
     protected void setOutboundStreams() {
         this.outcomingStreamsFieldsMap = new HashMap<>();
-        if (streamIds == null) //if no
-            this.streamIds = Arrays.asList(new String[]{Utils.DEFAULT_STREAM_ID});
-        if (fieldNames == null) throw new RuntimeException("No fields specified ");
+        if (config.getStreamIds() == null) //if no
+            this.config.withStreamIds(new String[]{Utils.DEFAULT_STREAM_ID});
+        if (config.getFieldNames() == null) throw new RuntimeException("No fields specified ");
         //todo throw exception
         //fill the outcomingStreamMap to be used by the declarer
-        for (String stream : streamIds) {
-            outcomingStreamsFieldsMap.put(stream, Arrays.asList(fieldNames));
+        for (String stream : config.getStreamIds()) {
+            outcomingStreamsFieldsMap.put(stream, Arrays.asList(config.getFieldNames()));
         }
     }
 
@@ -104,9 +74,9 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
             client = new MqttClient(brokerUrl, clientId + Time.currentTimeMillis());
             client.connect();
             client.setCallback(this);
-            client.subscribe(topic, qos);
+            client.subscribe(config.getTopic(), config.getQos());
         } catch (MqttException e) {
-            log.error("Unable to connect to client " + clientId + " on topic: " + topic);
+            log.error("Unable to connect to client " + clientId + " on topic: " + config.getTopic());
             e.printStackTrace();
         }
     }
@@ -117,7 +87,7 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
             Values values;
             try {
                 Pair<String, MqttMessage> messagePair = messageQueue.take();
-                values = mapper.mapToValues(messagePair.getRight().toString());
+                values = config.mapper.mapToValues(messagePair.getRight().toString());
                 if (values != null && values.size() > 0) {
                     emit(values);
                 }
@@ -150,7 +120,7 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
 
     @Override
     public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-        messageQueue.put(new ImmutablePair<>(topic.trim(), mqttMessage));
+        messageQueue.put(new ImmutablePair<>(config.getTopic().trim(), mqttMessage));
     }
 
 
@@ -219,14 +189,14 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
 
     @Override
     public void setFields(String... fieldNames) {
-        withFields(fieldNames);
+        config.withFieldNames(fieldNames);
         outgoingFieldsSet = true;
         setOutboundStreams();
     }
 
     @Override
     public void addOutgoingStreamName(String streamName) {
-        if (this.streamIds == null) this.streamIds = new ArrayList<>();
-        streamIds.add(streamName);
+        if (this.config.getStreamIds() == null) this.config.streamIds = new ArrayList<>();
+        this.config.streamIds.add(streamName);
     }
 }

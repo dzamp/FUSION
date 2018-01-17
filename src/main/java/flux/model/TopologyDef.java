@@ -17,7 +17,11 @@
  */
 package flux.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+
+import flux.model.extended.FusionBoltDef;
+import flux.model.extended.KafkaSpoutConfigDef;
+import flux.model.extended.MqttSpoutConfigDef;
+import flux.model.extended.MqttSpoutDef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +56,9 @@ public class TopologyDef {
     // the following are required if we're defining a core storm topology DAG in YAML, etc.
     private Map<String, BoltDef> boltMap = new LinkedHashMap<String, BoltDef>();
     private Map<String, SpoutDef> spoutMap = new LinkedHashMap<String, SpoutDef>();
-    private Map<String, MqttSpoutDef> mqttSpouts = new LinkedHashMap<>();
+    private Map<String, KafkaSpoutConfigDef> kafkaConfig = new LinkedHashMap<>();
+//    private Map<String , FusionKafkaConfig> kafkaConfig = new LinkedHashMap<>();
+    private Map<String, MqttSpoutConfigDef> mqttConfig = new LinkedHashMap<>();
     private Map<String, FusionBoltDef> fusionBolts = new LinkedHashMap<>();
 //    @JacksonXmlProperty(localName = "streams")
     private List<StreamDef> streams = new ArrayList<StreamDef>();
@@ -76,7 +82,7 @@ public class TopologyDef {
 
     public List<SpoutDef> getSpouts() {
         ArrayList<SpoutDef> retval = new ArrayList<SpoutDef>();
-        consolidateSpouts();
+//        consolidateSpouts();
         retval.addAll(this.spoutMap.values());
 //        retval.addAll((Collection<? extends SpoutDef>) this.mqttSpouts);
         return retval;
@@ -102,27 +108,42 @@ public class TopologyDef {
         }
     }
 
-    public List<MqttSpoutDef> getMqttspouts() {
-        ArrayList<MqttSpoutDef> retval = new ArrayList<>();
-        retval.addAll(this.mqttSpouts.values());
+    public List<KafkaSpoutConfigDef> getKafkaconfig() {
+        ArrayList<KafkaSpoutConfigDef> retval = new ArrayList<>();
+        retval.addAll(this.kafkaConfig.values());
         return retval;
     }
 
-
-    public void consolidateSpouts(){
-        this.spoutMap.putAll(mqttSpouts);
+    public void setKafkaconfig(List<KafkaSpoutConfigDef> fusionbolts) {
+        this.kafkaConfig = new LinkedHashMap<String, KafkaSpoutConfigDef>();
+        for(KafkaSpoutConfigDef spout : fusionbolts){
+            this.kafkaConfig.put(spout.getId(), spout);
+        }
     }
+
+
+
+    public List<MqttSpoutConfigDef> getMqttconfig() {
+        ArrayList<MqttSpoutConfigDef> retval = new ArrayList<>();
+        retval.addAll(this.mqttConfig.values());
+        return retval;
+    }
+
+    public void setMqttconfig(List<MqttSpoutConfigDef> spouts) {
+        this.mqttConfig = new LinkedHashMap<>();
+        for(MqttSpoutConfigDef spout : spouts){
+            this.mqttConfig.put(spout.getId(), spout);
+        }
+    }
+//    public void consolidateSpouts(){
+//        this.spoutMap.putAll();
+//    }
 
     public void consolidateBolts(){
         this.boltMap.putAll(fusionBolts);
     }
 
-    public void setMqttspouts(List<MqttSpoutDef> spouts) {
-        this.mqttSpouts = new LinkedHashMap<>();
-        for(MqttSpoutDef spout : spouts){
-            this.mqttSpouts.put(spout.getId(), spout);
-        }
-    }
+
 
     public List<BoltDef> getBolts() {
         consolidateBolts();
@@ -191,8 +212,8 @@ public class TopologyDef {
         return this.spoutMap.get(id);
     }
 
-    public MqttSpoutDef getMqttSpoutDef(String id){
-        return this.mqttSpouts.get(id);
+    public MqttSpoutConfigDef getMqttSpoutConfigDef(String id){
+        return this.mqttConfig.get(id);
     }
 
 

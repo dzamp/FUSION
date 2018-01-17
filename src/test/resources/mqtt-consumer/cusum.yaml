@@ -5,8 +5,6 @@ config:
 
 
 components:
-
-
   - id: "cusumAlgorithm"
     className: "abstraction.CusumAlgorithm"
     constructorArgs:
@@ -22,28 +20,50 @@ components:
     className: "abstraction.ObjectCount"
 
 
-# spout definitions
-mqttspouts:
-  - id: "spout-1"
-    className: "consumers.MqttConsumerSpout"
-    constructorArgs:
-      - "tcp://localhost:1883"
-      - "hello"
-      - "health_monitor/blood_pressure"
-    configMethods:
-#      - name: "withFields"
-#        args:
-#          - ["id","value","timestamp"]
-      - name: "withClasses"
-        args:
-          - ["java.lang.String","java.lang.Double","java.lang.Long"]
-      - name: "withRegex"
-        args: [","]
+mqttconfig:
+  - id: "mqtt-config"
+    className: "flux.model.extended.MqttSpoutConfigDef"
+    brokerUrl: "tcp://localhost:1883"
+    topic: "healh_monitor/blood_pressure"
+    clientId: "hello"
+    regex: ","
     fields:
       - "id"
       - "value"
       - "timestamp"
-    parallelism: 1
+    classes:
+      - "java.lang.String"
+      - "java.lang.Double"
+      - "java.lang.Long"
+
+spouts:
+  - id: "spout-1"
+    className: "consumers.MqttConsumerSpout"
+    constructorArgs:
+      - ref: "mqtt-config"
+
+# spout definitions
+#mqttspouts:
+#  - id: "spout-1"
+#    className: "consumers.MqttConsumerSpout"
+#    constructorArgs:
+#      - "tcp://localhost:1883"
+#      - "hello"
+#      - "health_monitor/blood_pressure"
+#    configMethods:
+##      - name: "withFields"
+##        args:
+##          - ["id","value","timestamp"]
+#      - name: "withClasses"
+#        args:
+#          - []
+#      - name: "withRegex"
+#        args: [","]
+#    fields:
+#      - "id"
+#      - "value"
+#      - "timestamp"
+#    parallelism: 1
 
 
 bolts:
