@@ -1,15 +1,16 @@
 package consumers;
 
-import flux.model.BeanDef;
 import scala.actors.threadpool.Arrays;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-public class MqttConfig {
+public class MqttConfig implements Serializable {
 
-    protected String brokerUrl =null;
-    protected String clientId =null;
-    protected String topic= null;
+    protected String brokerUrl = null;
+    protected String clientId = null;
+    protected String topic = null;
     protected String[] fieldNames = null;
     protected List<String> streamIds = null;
     protected int qos = 1;
@@ -68,19 +69,24 @@ public class MqttConfig {
         return qos;
     }
 
-    public MqttConfig withRegex(String regex) {
-        this.mapper.regex = regex;
-        return this;
-    }
-
     public MqttConfig setQos(int qos) {
         this.qos = qos;
         return this;
     }
 
-    public MqttConfig withClasses(String[] classes){
+    public MqttConfig withRegex(String regex) {
+        this.mapper.regex = regex;
+        return this;
+    }
+
+    public MqttConfig withClasses(String[] classes) {
         this.mapper.withClasses(classes);
         return this;
     }
 
+    public void addStreamName(String streamId) {
+        if (this.streamIds == null) this.streamIds = new ArrayList<>();
+        if (!this.streamIds.contains(streamId))
+            this.streamIds.add(streamId);
+    }
 }

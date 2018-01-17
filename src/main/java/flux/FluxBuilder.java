@@ -29,6 +29,7 @@ import flux.model.extended.MqttSpoutDef;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.CustomStreamGrouping;
+import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.topology.*;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
@@ -640,7 +641,7 @@ public class FluxBuilder {
         //if we have usual spouts or mqttSpouts we have to find the fields that are being sent
         for (SpoutDef spoutDef : spoutDefs) {
             IRichSpout spout = context.getSpout(spoutDef.getId());
-            if( spout instanceof MqttConsumerSpout /*|| spout instanceof*/ ){
+            if( spout instanceof MqttConsumerSpout || spout instanceof KafkaSpout){
 //            if (spoutDef instanceof MqttSpoutDef) {
                 //todo SHIIIIIT
                 MqttSpoutDef mqttSpoutDef = (MqttSpoutDef) spoutDef;

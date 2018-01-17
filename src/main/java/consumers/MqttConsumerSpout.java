@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.apache.storm.shade.org.eclipse.jetty.util.BlockingArrayQueue;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
@@ -28,7 +29,7 @@ import java.util.concurrent.BlockingQueue;
  * - String ...args / Class args the classes that will be used to emit the split values
  * Otherwise in case we want to emit to only one bolt we might as well use the second constructor and supply only one emitAction
  */
-public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
+public class MqttConsumerSpout implements MqttCallback,  FusionIRichSpout {
 
 
     private final MqttConfig config;
@@ -42,9 +43,14 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     private Map configMap = null;
 
 
+
     public MqttConsumerSpout(MqttSpoutConfigDef def) {
         this.config = def.createMqttConfig();
     }
+
+
+
+
 
 
     @Override
@@ -62,8 +68,6 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
         if (config.getStreamIds() == null) //if no
             this.config.withStreamIds(new String[]{Utils.DEFAULT_STREAM_ID});
         if (config.getFieldNames() == null) throw new RuntimeException("No fields specified ");
-        //todo throw exception
-        //fill the outcomingStreamMap to be used by the declarer
         for (String stream : config.getStreamIds()) {
             outcomingStreamsFieldsMap.put(stream, Arrays.asList(config.getFieldNames()));
         }
@@ -108,14 +112,10 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
 
 
     @Override
-    public void ack(Object msgId) {
-
-    }
+    public void ack(Object msgId) {  }
 
     @Override
-    public void fail(Object msgId) {
-
-    }
+    public void fail(Object msgId) {  }
 
 
     @Override
@@ -172,9 +172,6 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        //prepare the declarer
-//        setOutboundStreams();
-//        this.declarer = declarer;
         if (this.outcomingStreamsFieldsMap != null) {
             this.outcomingStreamsFieldsMap.forEach(
                     (stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
@@ -188,15 +185,12 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
 
 
     @Override
-    public void setFields(String... fieldNames) {
-        config.withFieldNames(fieldNames);
-        outgoingFieldsSet = true;
-        setOutboundStreams();
+    public String[] getFieldNames() {
+        return config.getFieldNames();
     }
 
     @Override
     public void addOutgoingStreamName(String streamName) {
-        if (this.config.getStreamIds() == null) this.config.streamIds = new ArrayList<>();
-        this.config.streamIds.add(streamName);
+        this.config.addStreamName(streamName);
     }
 }

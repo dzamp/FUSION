@@ -1,6 +1,7 @@
 import actions.SpoutAction;
 import actions.SpoutEmitter;
 import consumers.MqttConsumerSpout;
+import flux.model.extended.MqttSpoutConfigDef;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -21,7 +22,8 @@ public class MqttConsumerSpoutTest {
     public class MqttConsumerSpoutFoo extends MqttConsumerSpout{
 
         public MqttConsumerSpoutFoo(String brokerUrl, String clientId, String topic) {
-            super(brokerUrl, clientId, topic);
+//            super(brokerUrl, clientId, topic);
+            super(new MqttSpoutConfigDef());
         }
 
         @Override
