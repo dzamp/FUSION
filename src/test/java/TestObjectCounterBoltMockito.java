@@ -1,5 +1,4 @@
-import actions.BoltEmitter;
-import algorithms.MValuesThresholdBolt;
+
 import algorithms.ObjectCounterBolt;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -46,24 +45,24 @@ public class TestObjectCounterBoltMockito  {
 
     @Test
     public void testThresholdBolt() {
-        System.out.println("TestObjectCounterBoltMockito.testThresholdBolt");
-        Tuple t = mock(Tuple.class);
-        MValuesThresholdBolt bolt = new MValuesThresholdBolt("java.lang.Integer",
-                80,2, "gt");
-
-        when(t.getValue(0)).thenReturn("id");
-        when(t.getValue(1)).thenReturn("anotherString");
-        when(t.getValue(2)).thenReturn(88);
-        Map conf = new HashMap();
-        OutputCollector collector = mock(OutputCollector.class);
-        bolt.prepare(conf, null,collector);
-        bolt.addConditionTrueAction(new BoltEmitter(new String[]{"id","anotherString","value"}));
-        when(t.getValues()).thenReturn(new Values("id","anotherString",88));
-        OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);
-//        doReturn("ok").when(declarer.declar
-// e(new Fields("id","anotherString","value")));
-        bolt.declareOutputFields(declarer);
-        bolt.execute(t);
+//        System.out.println("TestObjectCounterBoltMockito.testThresholdBolt");
+//        Tuple t = mock(Tuple.class);
+//        MValuesThresholdBolt bolt = new MValuesThresholdBolt("java.lang.Integer",
+//                80,2, "gt");
+//
+//        when(t.getValue(0)).thenReturn("id");
+//        when(t.getValue(1)).thenReturn("anotherString");
+//        when(t.getValue(2)).thenReturn(88);
+//        Map conf = new HashMap();
+//        OutputCollector collector = mock(OutputCollector.class);
+//        bolt.prepare(conf, null,collector);
+//        bolt.addConditionTrueAction(new BoltEmitter(new String[]{"id","anotherString","value"}));
+//        when(t.getValues()).thenReturn(new Values("id","anotherString",88));
+//        OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);
+////        doReturn("ok").when(declarer.declar
+//// e(new Fields("id","anotherString","value")));
+//        bolt.declareOutputFields(declarer);
+//        bolt.execute(t);
 
 
     }

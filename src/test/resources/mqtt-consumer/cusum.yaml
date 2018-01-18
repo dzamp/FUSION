@@ -92,12 +92,5 @@ streams:
 
 
 
-#
-#  - name: "spout-1 --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
-#    from: "spout-1"
-#    to: "bolt-2"
-#    grouping:
-#      type: SHUFFLE
-
 
 
