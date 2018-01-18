@@ -65,7 +65,6 @@ public class StreamMergerTestCase {
         StreamMerger merger = new StreamMerger();
         merger.setInputSources(streamsToFieldsMap);
         TupleWindow tupleWindow = mock(TupleWindow.class);
-        //TODO get() or getNew() ???
         when(tupleWindow.get()).thenAnswer(tupleWindowMock());
 
         Values values = merger.executeWindowedAlgorithm(tupleWindow);

@@ -27,6 +27,8 @@ public class GenericBolt implements FusionIRichBolt {
     private List<String> streamIds = null;
 
     public GenericBolt withAlgorithm(IAlgorithm algo) {
+        this.streamIds = new ArrayList<>();
+        this.streamIds.add(Utils.DEFAULT_STREAM_ID);
         this.algorithm = algo;
         return this;
     }
@@ -40,7 +42,7 @@ public class GenericBolt implements FusionIRichBolt {
 
 
     public GenericBolt addOutgoingStream(String  streamId) {
-        if(streamIds == null) this.streamIds = new ArrayList<>();
+        this.streamIds.remove(Utils.DEFAULT_STREAM_ID);
         this.streamIds.add(streamId);
         return this;
 
@@ -53,14 +55,10 @@ public class GenericBolt implements FusionIRichBolt {
 
 
     private void setOutgoingFields() {
-        outgoingSteamFieldsMap = new HashMap<>();
-        if (streamIds == null) //if no
-            this.streamIds = Arrays.asList(Utils.DEFAULT_STREAM_ID);
-
         //if the algorithm adds new fields to the stream add them here
-        if (algorithm.getExtraFields() != null) {
-            outgoingFieldNames = (String[]) ArrayUtils.addAll(incomingfieldNames, algorithm.getExtraFields());
-        }
+        outgoingFieldNames = algorithm.transformFields(incomingfieldNames);
+
+        outgoingSteamFieldsMap = new HashMap<>();
         if (outgoingFieldNames != null) {
             Set<String> removeDuplicates = new LinkedHashSet<>();
             removeDuplicates.addAll(Arrays.asList(outgoingFieldNames));

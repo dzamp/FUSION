@@ -8,7 +8,7 @@ import util.Operator;
 import java.io.Serializable;
 import java.util.Comparator;
 
-public class ValueFilter  /*extends GenericBolt*/ implements IAlgorithm , Serializable{
+public class ValueFilter  implements IAlgorithm , Serializable{
 
     protected Number threshold;
     protected Class clazz;
@@ -103,14 +103,9 @@ public class ValueFilter  /*extends GenericBolt*/ implements IAlgorithm , Serial
     public Values executeAlgorithm(Tuple tuple) {
         Values rejectedValues = new Values(), filteredValues = new Values();
         filterOperation.apply(comparator, tuple, threshold, filteredValues, rejectedValues);
-        //for every emitAction
         if (filteredValues.size() > 0 ) return  filteredValues;
+        //here in the values of the filtered/rejected values ALL the tuple is present!!!
         else return null;
-    }
-
-    @Override
-    public String[] getExtraFields() {
-        return null;
     }
 
 
@@ -216,5 +211,10 @@ public class ValueFilter  /*extends GenericBolt*/ implements IAlgorithm , Serial
             default:
                 return null;
         }
+    }
+
+    @Override
+    public String[] transformFields(String[] incomingFields) {
+        return incomingFields;
     }
 }

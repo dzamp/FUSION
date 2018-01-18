@@ -73,4 +73,8 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
     }
 
 
+    @Override
+    public String[] transformFields(String[] incomingFields) {
+        return new String[0];
+    }
 }

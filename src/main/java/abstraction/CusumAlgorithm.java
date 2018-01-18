@@ -86,12 +86,13 @@ public class CusumAlgorithm implements IAlgorithm, Serializable{
         return values;
     }
 
+
+
     @Override
-    public String[] getExtraFields() {
-        return new String[]{"cusum"};
+    public String[] transformFields(String[] incomingFields) {
+        Set<String> removeDuplicates = new LinkedHashSet<>();
+        removeDuplicates.addAll(Arrays.asList(incomingFields));
+        removeDuplicates.add(new String("cusum"));
+        return removeDuplicates.toArray(new String[removeDuplicates.size()]);
     }
-
-
-
-
 }

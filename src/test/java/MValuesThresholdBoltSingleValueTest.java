@@ -258,7 +258,6 @@ public class MValuesThresholdBoltSingleValueTest {
     }
 
 
-//TODO test for float
 
 
 

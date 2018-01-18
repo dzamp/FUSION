@@ -1,0 +1,64 @@
+name: "kafka-topology"
+config:
+  topology.workers: 1
+  topology.debug: true
+
+
+kafkaconfig:
+  - id: "kafka-config"
+    className: "flux.model.extended.KafkaSpoutConfigDef"
+    classes:
+      - "java.lang.String"
+      - "java.lang.Double"
+      - "java.lang.Long"
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
+    regex: ","
+    zkHosts: "localhost:2181"
+    topic: "health"
+    zkRoot: "/health"
+    clientId: "storm-consumer"
+
+
+
+components:
+
+  - id: "shewhartAlgorithm"
+    className: "abstraction.ShewhartSingleValue"
+    constructorArgs:
+      - 50.0
+      - 10.0
+    configMethods:
+      - name: "withPositionInStream"
+        args: [1]
+
+
+# spout definitions
+spouts:
+  - id: "kafka-spout"
+    className: "consumers.FusionKafkaSpout"
+    constructorArgs:
+      - ref: "kafka-config"
+
+# bolt definitions
+fusionbolts:
+  - id: "shewhartBolt"
+    className: "abstraction.GenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "shewhartAlgorithm"]
+
+
+#stream definitions
+# stream definitions define connections between spouts and bolts.
+# note that such connections can be cyclical
+# custom stream groupings are also supported
+
+streams:
+  - name: "kafka --> shewhartBolt" # name isn't used (placeholder for logging, UI, etc.)
+    from: "kafka-spout"
+    to: "shewhartBolt"
+    grouping:
+      type: SHUFFLE

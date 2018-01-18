@@ -118,7 +118,6 @@ public class ShewhartTestCase {
                  UCL= curr_mean + kplus * curr_Variance;
                  LCL = curr_mean - kminus * curr_Variance;
                 this.previousState.nextState(curr_mean, curr_Variance);
-                //TODO should I return which boundary has been breached? UCL or LCL
 
                 if (value > UCL || value < LCL) {
                     outcome = 1;

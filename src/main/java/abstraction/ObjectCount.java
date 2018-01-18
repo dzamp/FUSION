@@ -26,10 +26,9 @@ public class ObjectCount implements IAlgorithm, Serializable {
         return (Values) tuple.getValues();
     }
 
+
     @Override
-    public String[] getExtraFields() {
-        return null;
+    public String[] transformFields(String[] incomingFields) {
+        return incomingFields;
     }
-
-
 }

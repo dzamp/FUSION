@@ -1,6 +1,5 @@
 package algorithms;
 
-import actions.BoltEmitter;
 import exceptions.FieldsMismatchException;
 import flow.StreamBisect;
 import org.apache.storm.task.OutputCollector;
@@ -81,27 +80,27 @@ public class MValuesThresholdBolt extends StreamBisect {
     public void execute(Tuple tuple) {
         Values rejectedValues = new Values(), filteredValues = new Values();
         filterOperation.apply(comparator, tuple, threshold, filteredValues, rejectedValues);
-        //for every emitAction
-        if (filteredValues.size()!=0) {
-            //above threshold
-            for (BoltEmitter em : this.conditionTrueAction) {
-                try {
-                    em.execute(this.collector, em.getStreamId(), (Values)tuple.getValues());
-                } catch (FieldsMismatchException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        if (rejectedValues.size()!=0) {
-            //below threshold
-            for (BoltEmitter em : this.conditionFalseAction) {
-                try {
-                    em.execute(this.collector, em.getStreamId(), (Values)tuple.getValues());
-                } catch (FieldsMismatchException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+//        //for every emitAction
+//        if (filteredValues.size()!=0) {
+//            //above threshold
+//            for (BoltEmitter em : this.conditionTrueAction) {
+//                try {
+//                    em.execute(this.collector, em.getStreamId(), (Values)tuple.getValues());
+//                } catch (FieldsMismatchException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//        if (rejectedValues.size()!=0) {
+//            //below threshold
+//            for (BoltEmitter em : this.conditionFalseAction) {
+//                try {
+//                    em.execute(this.collector, em.getStreamId(), (Values)tuple.getValues());
+//                } catch (FieldsMismatchException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
     }
 
     /**

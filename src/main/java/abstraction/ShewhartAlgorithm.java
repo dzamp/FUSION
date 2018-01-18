@@ -11,7 +11,7 @@ import java.util.Map;
 //TODO this algortihm will emit new fields! how to send them to GenericWindowed Bolt?
 public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
-    protected ShewHartState previousState;
+    protected ShewhartState previousState;
     //position on which the shewhard algorithm will be applied
     protected int positionInStream = 0;
     protected String fieldInStream = "";
@@ -28,11 +28,11 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
 
     public ShewhartAlgorithm() {
-        this.previousState = new ShewHartState();
+        this.previousState = new ShewhartState();
     }
 
     public ShewhartAlgorithm(double initialMean, double initialVariance) {
-        this.previousState = new ShewHartState(initialMean, initialVariance);
+        this.previousState = new ShewhartState(initialMean, initialVariance);
     }
 
 
@@ -57,17 +57,21 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
     @Override
     public Values executeWindowedAlgorithm(TupleWindow tupleWindow) {
+        Values values = new Values();
         int outcome = 0;
         int n = tupleWindow.getNew().size();
         Tuple currentTuple=null;
-        for (Tuple input : tupleWindow.getNew()) {
+        List<Tuple> newTuples= tupleWindow.getNew();
+        List<Tuple> allTuples= tupleWindow.get();
+
+        for (Tuple input : tupleWindow.get()) {
             currentTuple = input;
             double value = (double) (positionInStream == -1 ? (double) input.getValueByField(this.fieldInStream) : input.getDouble(positionInStream));
-            double curr_mean = previousState.mean + ((1.0 / n) * (value - previousState.mean));
+            double curr_mean = previousState.getMean()+ ((1.0 / n) * (value - previousState.getMean()));
             double curr_Variance = Math.sqrt(
                     (1.0 / n) * (
-                            ((n - 1.0) * Math.pow(previousState.variance, 2))
-                                    + ((value - previousState.mean) * (value - curr_mean))
+                            ((n - 1.0) * Math.pow(previousState.getVariance(), 2))
+                                    + ((value - previousState.getMean()) * (value - curr_mean))
                     )
             );
 
@@ -89,10 +93,14 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
     @Override
     public String[] getExtraFields() {
-        return new String[]{"shewhart_outcome"};
+        return new String[]{"shewharte"};
     }
 
-
+    @Override
+    public String[] transformFields(String[] incomingFields) {
+        //todo
+        return null;
+    }
     @Override
     public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources) {
         this.inputFieldsFromSources = inputFieldsFromSources;
@@ -115,44 +123,6 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
         return this;
     }
 
-    protected class ShewHartState implements Serializable {
-        //TODO could those be NUmbers?
-        private double mean;
-        private double variance;
-
-
-        public ShewHartState() {
-            this.mean = 0.0;
-            this.variance = 0.0;
-        }
-
-        public ShewHartState(double mean, double variance) {
-            this.mean = mean;
-            this.variance = variance;
-        }
-
-        public double getMean() {
-            return mean;
-        }
-
-        public void setMean(double mean) {
-            this.mean = mean;
-        }
-
-        public double getVariance() {
-            return variance;
-        }
-
-        public void setVariance(double variance) {
-            this.variance = variance;
-        }
-
-
-        public void nextState(double newMean, double newVariance) {
-            this.mean = newMean;
-            this.variance = newVariance;
-        }
-    }
 
 
 }

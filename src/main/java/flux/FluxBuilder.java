@@ -19,17 +19,14 @@ package flux;
 
 import abstraction.FusionIRichBolt;
 import consumers.FusionIRichSpout;
-import consumers.MqttConsumerSpout;
 import flux.fusion.StreamFieldsManager;
 import flux.model.*;
 import flux.model.extended.FusionBoltDef;
 import flux.model.extended.KafkaSpoutConfigDef;
 import flux.model.extended.MqttSpoutConfigDef;
-import flux.model.extended.MqttSpoutDef;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.CustomStreamGrouping;
-import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.topology.*;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
@@ -111,12 +108,12 @@ public class FluxBuilder {
 
     private static void buildSpoutConfigs(ExecutionContext context) {
         if (context.getTopologyDef().getKafkaconfig() != null && context.getTopologyDef().getKafkaconfig().size() > 0) {
-            for(KafkaSpoutConfigDef def : context.getTopologyDef().getKafkaconfig())
-            context.addComponent(def.getId(),def);
+            for (KafkaSpoutConfigDef def : context.getTopologyDef().getKafkaconfig())
+                context.addComponent(def.getId(), def);
         }
         if (context.getTopologyDef().getMqttconfig() != null && context.getTopologyDef().getMqttconfig().size() > 0) {
-            for(MqttSpoutConfigDef def : context.getTopologyDef().getMqttconfig())
-                context.addComponent(def.getId(),def);
+            for (MqttSpoutConfigDef def : context.getTopologyDef().getMqttconfig())
+                context.addComponent(def.getId(), def);
         }
     }
 
@@ -232,7 +229,7 @@ public class FluxBuilder {
                     declarer.shuffleGrouping(stream.getFrom(), streamId);
                     break;
                 case FIELDS:
-                    //TODO check for null grouping args
+                    //-TODO check for null grouping args
                     declarer.fieldsGrouping(stream.getFrom(), streamId, new Fields(grouping.getArgs()));
                     break;
                 case ALL:
@@ -635,32 +632,25 @@ public class FluxBuilder {
     public static void buildStreamDeclarers(ExecutionContext context, TopologyBuilder builder) {
         List<StreamDef> streamDefs = context.getTopologyDef().getStreams();
         List<SpoutDef> spoutDefs = context.getTopologyDef().getSpouts();
-//        List<MqttSpoutDef> mqttSpoutDefs = context.getTopologyDef().getMqttspouts();
-
         //start from spouts and give the topology fields
         //if we have usual spouts or mqttSpouts we have to find the fields that are being sent
         for (SpoutDef spoutDef : spoutDefs) {
             IRichSpout spout = context.getSpout(spoutDef.getId());
-            if( spout instanceof MqttConsumerSpout || spout instanceof KafkaSpout){
-//            if (spoutDef instanceof MqttSpoutDef) {
-                //todo SHIIIIIT
-                MqttSpoutDef mqttSpoutDef = (MqttSpoutDef) spoutDef;
-                String[] fields = mqttSpoutDef.getFields();
-                //find from the streams where does this spout participate
+            if (spout instanceof FusionIRichSpout) {
                 Stack<FusionBoltDef> participatingBolts = new Stack<>();
-
                 for (StreamDef streamDef : streamDefs) {
                     String streamId = null;
-                    if (streamDef.getFrom().equals(mqttSpoutDef.getId())) {
+                    if (streamDef.getFrom().equals(spoutDef.getId())) {
                         if (streamDef.getGrouping().getStreamId() != null) {
                             streamId = streamDef.getGrouping().getStreamId();
-                            addStreamToVertex(context, mqttSpoutDef, streamId);
+                            addStreamToVertex(context, spoutDef, streamId);
                         }
-                        ((FusionIRichSpout) context.getSpout(mqttSpoutDef.getId())).setFields(fields);
-                        BoltDef boltdef = context.getTopologyDef().getBoltDef(streamDef.getTo());
+                        BoltDef boltdef = context.getTopologyDef().getBoltDef(streamDef
+                                .getTo());
                         if (boltdef instanceof FusionBoltDef) {
-                            FusionBoltDef fusionBoltDef = context.getTopologyDef().getFusionBoltDef(streamDef.getTo());
-                            findConnectingBoltsDFS(fusionBoltDef, streamDefs, context, mqttSpoutDef.fields);
+                            FusionBoltDef fusionBoltDef = context.getTopologyDef()
+                                    .getFusionBoltDef(streamDef.getTo());
+                            findConnectingBoltsDFS(fusionBoltDef, streamDefs, context, ((FusionIRichSpout) spout).getFieldNames());
                         }
                     }
                 }
@@ -678,7 +668,6 @@ public class FluxBuilder {
      * @param fields
      */
     public static void findConnectingBoltsDFS(FusionBoltDef fusionBoltDefFrom, List<StreamDef> streamDefs, ExecutionContext context, String[] fields) {
-        Stack<FusionBoltDef> participatingBolts = new Stack<>();
         FusionIRichBolt from = (FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId());
         boolean isTerminal = true;
         for (StreamDef streamDef : streamDefs) {
@@ -713,7 +702,8 @@ public class FluxBuilder {
      * @param streamId
      */
     private static void addStreamToVertex(ExecutionContext context, VertexDef vertex, String streamId) {
-        if (vertex instanceof MqttSpoutDef) {
+
+        if (vertex instanceof SpoutDef) {
             ((FusionIRichSpout) context.getSpout(vertex.getId()))
                     .addOutgoingStreamName(streamId);
         }
@@ -724,15 +714,6 @@ public class FluxBuilder {
     }
 
 
-    public static String[] getAddedFieldsFromAlgorithm(FusionBoltDef fusionBoltDef, FusionIRichBolt from) {
-        if (from.getAlgorithm().getExtraFields() != null) {
-            LinkedHashSet<String> hashSetOfFields = new LinkedHashSet<>();// preserve ordering
-            hashSetOfFields.addAll(Arrays.asList(fusionBoltDef.fields));
-            hashSetOfFields.addAll(Arrays.asList(from.getAlgorithm().getExtraFields()));
-            return hashSetOfFields.toArray(new String[hashSetOfFields.size()]);
-        }
-        return fusionBoltDef.fields;
-    }
 
     /**
      * Determine if the given constructor/method parameter types are compatible given arguments List. Consider if

@@ -59,7 +59,6 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
         }
         String keyString = StringScheme.deserializeString(key);
         String valueString = StringScheme.deserializeString(value);
-        //TODO INSERT HERE PATTERN TO SPLIT!!
         String[] stringValues = null;
         if (mapper.regex != null) {
             return mapper.mapToValues(valueString);

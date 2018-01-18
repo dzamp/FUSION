@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 import org.apache.storm.shade.org.eclipse.jetty.util.BlockingArrayQueue;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
@@ -15,7 +14,10 @@ import org.apache.storm.utils.Time;
 import org.apache.storm.utils.Utils;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 
@@ -29,7 +31,7 @@ import java.util.concurrent.BlockingQueue;
  * - String ...args / Class args the classes that will be used to emit the split values
  * Otherwise in case we want to emit to only one bolt we might as well use the second constructor and supply only one emitAction
  */
-public class MqttConsumerSpout implements MqttCallback,  FusionIRichSpout {
+public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
 
 
     private final MqttConfig config;
@@ -43,14 +45,9 @@ public class MqttConsumerSpout implements MqttCallback,  FusionIRichSpout {
     private Map configMap = null;
 
 
-
     public MqttConsumerSpout(MqttSpoutConfigDef def) {
         this.config = def.createMqttConfig();
     }
-
-
-
-
 
 
     @Override
@@ -60,7 +57,7 @@ public class MqttConsumerSpout implements MqttCallback,  FusionIRichSpout {
         this.ctx = context;
         messageQueue = new BlockingArrayQueue<>();
         log = Logger.getLogger(this.getClass());
-        setMqttClientConnection(this.config.getBrokerUrl(), this.config.getClientId());
+        setMqttClientConnection(this.config.getBrokerUrl(), this.config.getClientId() + Time.currentTimeMillis());
     }
 
     protected void setOutboundStreams() {
@@ -87,17 +84,14 @@ public class MqttConsumerSpout implements MqttCallback,  FusionIRichSpout {
 
     @Override
     public void nextTuple() {
-        while (!messageQueue.isEmpty()) {
-            Values values;
-            try {
-                Pair<String, MqttMessage> messagePair = messageQueue.take();
-                values = config.mapper.mapToValues(messagePair.getRight().toString());
-                if (values != null && values.size() > 0) {
-                    emit(values);
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        try {
+            Pair<String, MqttMessage> messagePair = messageQueue.take();
+            Values values = config.mapper.mapToValues(messagePair.getRight().toString());
+            if (values != null && values.size() > 0) {
+                emit(values);
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -112,10 +106,12 @@ public class MqttConsumerSpout implements MqttCallback,  FusionIRichSpout {
 
 
     @Override
-    public void ack(Object msgId) {  }
+    public void ack(Object msgId) {
+    }
 
     @Override
-    public void fail(Object msgId) {  }
+    public void fail(Object msgId) {
+    }
 
 
     @Override
@@ -172,6 +168,7 @@ public class MqttConsumerSpout implements MqttCallback,  FusionIRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        setOutboundStreams();
         if (this.outcomingStreamsFieldsMap != null) {
             this.outcomingStreamsFieldsMap.forEach(
                     (stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));

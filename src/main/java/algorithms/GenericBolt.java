@@ -1,6 +1,6 @@
 package algorithms;
 
-import actions.BoltEmitter;
+//import actions.BoltEmitter;
 import exceptions.FieldsMismatchException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -18,28 +18,28 @@ public abstract class GenericBolt implements IRichBolt {
     protected TopologyContext topologyContext;
     protected OutputCollector collector;
     protected Map configMap;
-    protected List<BoltEmitter> actions;
+//    protected List<BoltEmitter> actions;
 
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
         this.topologyContext = topologyContext;
         this.collector = outputCollector;
         this.configMap = map;
-        this.actions = new ArrayList<>();
+//        this.actions = new ArrayList<>();
     }
 
-    public void addAction(BoltEmitter boltEmitter) {
-        actions.add(boltEmitter);
-    }
+//    public void addAction(BoltEmitter boltEmitter) {
+//        actions.add(boltEmitter);
+//    }
 
     public void emit(Values values){
-        this.actions.forEach(boltEmitter -> {
-            try {
-                boltEmitter.execute(this.collector, boltEmitter.getStreamId(), values);
-            } catch (FieldsMismatchException e) {
-                e.printStackTrace();
-            }
-        });
+//        this.actions.forEach(boltEmitter -> {
+//            try {
+//                boltEmitter.execute(this.collector, boltEmitter.getStreamId(), values);
+//            } catch (FieldsMismatchException e) {
+//                e.printStackTrace();
+//            }
+//        });
     }
 
     @Override
@@ -53,13 +53,13 @@ public abstract class GenericBolt implements IRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        if(this.actions.size() == 1) {
-                if(this.actions.get(0).getStreamId()==null)
-                    declarer.declare(new Fields(this.actions.get(0).getEmittedFields()));
-        }
-        else {
-            actions.forEach(boltEmitter -> declarer.declareStream(boltEmitter.getStreamId(),new Fields(boltEmitter.getEmittedFields())));
-        }
+//        if(this.actions.size() == 1) {
+//                if(this.actions.get(0).getStreamId()==null)
+//                    declarer.declare(new Fields(this.actions.get(0).getEmittedFields()));
+//        }
+//        else {
+//            actions.forEach(boltEmitter -> declarer.declareStream(boltEmitter.getStreamId(),new Fields(boltEmitter.getEmittedFields())));
+//        }
     }
 
     @Override

@@ -165,7 +165,6 @@ public class BayesianNetwork implements IAlgorithm, Serializable{
     public Values executeAlgorithm(Tuple tuple) {
         //TODO edw uparxei to erwthma ti morfhs 8a einai to input tuple.
         //TODO 8a einai profanws values apo polla streams epomenws 8a prepei na anagnwrisoume ka8e stream se poio network node pou anhkei
-        //TODO
         Map<BayesNode, String> evidence = new HashMap<>();
 
         //classify the incoming tuples
@@ -185,10 +184,11 @@ public class BayesianNetwork implements IAlgorithm, Serializable{
         return null;
     }
 
+
+
     @Override
-    public String[] getExtraFields() {
+    public String[] transformFields(String[] incomingFields) {
+        //todo wtf
         return null;
     }
-
-
 }

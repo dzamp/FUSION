@@ -1,0 +1,63 @@
+name: "kafka-topology"
+config:
+  topology.workers: 1
+  topology.debug: true
+
+
+mqttconfig:
+  - id: "mqtt-config"
+    className: "flux.model.extended.MqttSpoutConfigDef"
+    brokerUrl: "tcp://localhost:1883"
+    topic: "health_monitor/blood_pressure"
+    clientId: "hello"
+    regex: ","
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
+    classes:
+      - "java.lang.String"
+      - "java.lang.Double"
+      - "java.lang.Long"
+
+
+
+components:
+
+  - id: "shewhartAlgorithm"
+    className: "abstraction.ShewhartSingleValue"
+    constructorArgs:
+      - 50.0
+      - 10.0
+    configMethods:
+      - name: "withPositionInStream"
+        args: [1]
+
+
+# spout definitions
+spouts:
+  - id: "mqtt-spout"
+    className: "consumers.MqttConsumerSpout"
+    constructorArgs:
+      - ref: "mqtt-config"
+
+# bolt definitions
+fusionbolts:
+  - id: "shewhartBolt"
+    className: "abstraction.GenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "shewhartAlgorithm"]
+
+
+#stream definitions
+# stream definitions define connections between spouts and bolts.
+# note that such connections can be cyclical
+# custom stream groupings are also supported
+
+streams:
+  - name: "mqtt-spout --> shewhartBolt" # name isn't used (placeholder for logging, UI, etc.)
+    from: "mqtt-spout"
+    to: "shewhartBolt"
+    grouping:
+      type: SHUFFLE

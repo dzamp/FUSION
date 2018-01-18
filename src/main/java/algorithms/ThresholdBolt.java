@@ -1,17 +1,17 @@
-package algorithms;
-
-import actions.BoltEmitter;
-import exceptions.FieldsMismatchException;
-import flow.StreamBisect;
-import util.FilterOperation;
-import util.Operator;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
-
-import java.util.*;
-
+//package algorithms;
+//
+//import actions.BoltEmitter;
+//import exceptions.FieldsMismatchException;
+//import flow.StreamBisect;
+//import util.FilterOperation;
+//import util.Operator;
+//import org.apache.storm.task.OutputCollector;
+//import org.apache.storm.task.TopologyContext;
+//import org.apache.storm.tuple.Tuple;
+//import org.apache.storm.tuple.Values;
+//
+//import java.util.*;
+//
 
 /**
  * THOUGHTS
@@ -35,180 +35,180 @@ import java.util.*;
  * How should we implement something like that?
  */
 
-public class ThresholdBolt extends StreamBisect {
-
-
-    protected Number threshold;
-    protected Class clazz;
-    /**
-     * Interface to delegate the action of comparator
-     */
-    protected Comparator<Number> comparator;
-    /**
-     * The filterOperation that will implement the comparison
-     */
-    protected FilterOperation filterOperation;
-    /**
-     * Operator containing the options available( gt - greater than, lt - less than , eq - equal, neq - not equal)
-     */
-    protected Operator operator;
-
-
-
-    public ThresholdBolt(String className, Number threshold, String operator) {
-        super();
-        try {
-            this.clazz = Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        this.threshold = threshold;
-        this.operator = Operator.select(operator);
-
-    }
-
-
-    @Override
-    public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-        super.prepare(stormConf, context, collector);
-        resolveComparator(clazz.getName());
-        this.filterOperation = resolveFilterByOperator();
-    }
-
-
-    @Override
-    /**
-     * Do we have to support more complex inputs? if so how will we know the structure?
-     * and how can we obtain in from the yaml file?
-     */
-    public void execute(Tuple input) {
-        //we have to return a number of values that will be supplied from the operation
-        //do appropriate action according to the Operator.
-        Values rejectedValues = new Values();
-        Values filteredValues = new Values();
-        filterOperation.apply(comparator, input, threshold, filteredValues, rejectedValues);
-        //for every emitAction
-
-            for (BoltEmitter em : this.conditionTrueAction) {
-                try {
-                    em.execute(this.collector, em.getStreamId(), filteredValues);
-                } catch (FieldsMismatchException e) {
-                    e.printStackTrace();
-                }
-            }
-            for (BoltEmitter em : this.conditionFalseAction) {
-                try {
-                    em.execute(this.collector, em.getStreamId(), rejectedValues);
-                } catch (FieldsMismatchException e) {
-                    e.printStackTrace();
-                }
-            }
-
-    }
-
-
-
-
-
-    /**
-     * Returns a filterOperation implementation that will filterOperation each input value from the stream. Returns two lists of Values,
-     * the accepted ones(i.e. the ones that smash the threshold) and the rejected ones(i.e. the ones who dont)
-     *
-     * @return
-     */
-    private void resolveComparator(String className) {
-        switch (className) {
-            case "java.lang.Integer":
-                comparator = new Comparator<Number>() {
-                    @Override
-                    public int compare(Number o1, Number o2) {
-                        return o1.intValue() - o2.intValue();
-                    }
-                };
-                break;
-            case "java.lang.Double":
-                comparator = new Comparator<Number>() {
-                    @Override
-                    public int compare(Number o1, Number o2) {
-                        int com = (o1.doubleValue() < o2.doubleValue()) ? -1 : ((o1.doubleValue() == o2.doubleValue()) ? 0 : 1);
-                        return com;
-                    }
-                };
-                break;
-            case "java.lang.Long":
-                comparator = new Comparator<Number>() {
-                    @Override
-                    public int compare(Number o1, Number o2) {
-                        //what happens with long?
-                        //might the number difference be that big so that the int can't store it?
-                        return (o1.longValue() < o2.longValue()) ? -1 : ((o1.longValue() == o2.longValue()) ? 0 : 1);
-                    }
-                };
-                break;
-            case "java.lang.Float":
-                comparator = new Comparator<Number>() {
-                    @Override
-                    public int compare(Number o1, Number o2) {
-                        return (o1.floatValue() < o2.floatValue()) ? -1 : ((o1.floatValue() == o2.floatValue()) ? 0 : 1);
-                    }
-                };
-                break;
-        }
-    }
-
-    private FilterOperation resolveFilterByOperator() {
-        switch (operator) {
-            case GREATER_THAN:
-                this.filterOperation = new FilterOperation() {
-                    @Override
-                    public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
-                        Number newValue = (Number) input.getValue(0);
-                        //newValue-threshold > 0
-                        if (comparator.compare(newValue, threshold) > 0) {
-                            filteredValues.add(newValue);
-                        } else rejectedValues.add(newValue);
-                    }
-                };
-
-            case LESS_THAN:
-                return new FilterOperation() {
-                    @Override
-                    public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
-                        Number newValue = (Number) input.getValue(0);
-                        //newValue-threshold < 0
-                        if (comparator.compare(newValue, threshold) < 0) {
-                            filteredValues.add(newValue);
-                        } else rejectedValues.add(newValue);
-                    }
-                };
-
-            case EQUAL:
-                return new FilterOperation() {
-                    @Override
-                    public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
-                        Number newValue = (Number) input.getValue(0);
-                        //equality
-                        if (comparator.compare(newValue, threshold) == 0) {
-                            filteredValues.add(newValue);
-                        } else rejectedValues.add(newValue);
-                    }
-                };
-
-            case NOT_EQUAL:
-                return new FilterOperation() {
-                    @Override
-                    public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
-                        Number newValue = (Number) input.getValue(0);
-                        //inequality
-                        if (comparator.compare(newValue, threshold) != 0) {
-                            filteredValues.add(newValue);
-                        } else rejectedValues.add(newValue);
-                    }
-                };
-            default:
-                return null;
-        }
-    }
-
-
-}
+//public class ThresholdBolt extends StreamBisect {
+//
+//
+//    protected Number threshold;
+//    protected Class clazz;
+//    /**
+//     * Interface to delegate the action of comparator
+//     */
+//    protected Comparator<Number> comparator;
+//    /**
+//     * The filterOperation that will implement the comparison
+//     */
+//    protected FilterOperation filterOperation;
+//    /**
+//     * Operator containing the options available( gt - greater than, lt - less than , eq - equal, neq - not equal)
+//     */
+//    protected Operator operator;
+//
+//
+//
+//    public ThresholdBolt(String className, Number threshold, String operator) {
+//        super();
+//        try {
+//            this.clazz = Class.forName(className);
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        this.threshold = threshold;
+//        this.operator = Operator.select(operator);
+//
+//    }
+//
+//
+//    @Override
+//    public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+//        super.prepare(stormConf, context, collector);
+//        resolveComparator(clazz.getName());
+//        this.filterOperation = resolveFilterByOperator();
+//    }
+//
+//
+//    @Override
+//    /**
+//     * Do we have to support more complex inputs? if so how will we know the structure?
+//     * and how can we obtain in from the yaml file?
+//     */
+//    public void execute(Tuple input) {
+//        //we have to return a number of values that will be supplied from the operation
+//        //do appropriate action according to the Operator.
+//        Values rejectedValues = new Values();
+//        Values filteredValues = new Values();
+//        filterOperation.apply(comparator, input, threshold, filteredValues, rejectedValues);
+//        //for every emitAction
+//
+//            for (BoltEmitter em : this.conditionTrueAction) {
+//                try {
+//                    em.execute(this.collector, em.getStreamId(), filteredValues);
+//                } catch (FieldsMismatchException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            for (BoltEmitter em : this.conditionFalseAction) {
+//                try {
+//                    em.execute(this.collector, em.getStreamId(), rejectedValues);
+//                } catch (FieldsMismatchException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//    }
+//
+//
+//
+//
+//
+//    /**
+//     * Returns a filterOperation implementation that will filterOperation each input value from the stream. Returns two lists of Values,
+//     * the accepted ones(i.e. the ones that smash the threshold) and the rejected ones(i.e. the ones who dont)
+//     *
+//     * @return
+//     */
+//    private void resolveComparator(String className) {
+//        switch (className) {
+//            case "java.lang.Integer":
+//                comparator = new Comparator<Number>() {
+//                    @Override
+//                    public int compare(Number o1, Number o2) {
+//                        return o1.intValue() - o2.intValue();
+//                    }
+//                };
+//                break;
+//            case "java.lang.Double":
+//                comparator = new Comparator<Number>() {
+//                    @Override
+//                    public int compare(Number o1, Number o2) {
+//                        int com = (o1.doubleValue() < o2.doubleValue()) ? -1 : ((o1.doubleValue() == o2.doubleValue()) ? 0 : 1);
+//                        return com;
+//                    }
+//                };
+//                break;
+//            case "java.lang.Long":
+//                comparator = new Comparator<Number>() {
+//                    @Override
+//                    public int compare(Number o1, Number o2) {
+//                        //what happens with long?
+//                        //might the number difference be that big so that the int can't store it?
+//                        return (o1.longValue() < o2.longValue()) ? -1 : ((o1.longValue() == o2.longValue()) ? 0 : 1);
+//                    }
+//                };
+//                break;
+//            case "java.lang.Float":
+//                comparator = new Comparator<Number>() {
+//                    @Override
+//                    public int compare(Number o1, Number o2) {
+//                        return (o1.floatValue() < o2.floatValue()) ? -1 : ((o1.floatValue() == o2.floatValue()) ? 0 : 1);
+//                    }
+//                };
+//                break;
+//        }
+//    }
+//
+//    private FilterOperation resolveFilterByOperator() {
+//        switch (operator) {
+//            case GREATER_THAN:
+//                this.filterOperation = new FilterOperation() {
+//                    @Override
+//                    public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
+//                        Number newValue = (Number) input.getValue(0);
+//                        //newValue-threshold > 0
+//                        if (comparator.compare(newValue, threshold) > 0) {
+//                            filteredValues.add(newValue);
+//                        } else rejectedValues.add(newValue);
+//                    }
+//                };
+//
+//            case LESS_THAN:
+//                return new FilterOperation() {
+//                    @Override
+//                    public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
+//                        Number newValue = (Number) input.getValue(0);
+//                        //newValue-threshold < 0
+//                        if (comparator.compare(newValue, threshold) < 0) {
+//                            filteredValues.add(newValue);
+//                        } else rejectedValues.add(newValue);
+//                    }
+//                };
+//
+//            case EQUAL:
+//                return new FilterOperation() {
+//                    @Override
+//                    public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
+//                        Number newValue = (Number) input.getValue(0);
+//                        //equality
+//                        if (comparator.compare(newValue, threshold) == 0) {
+//                            filteredValues.add(newValue);
+//                        } else rejectedValues.add(newValue);
+//                    }
+//                };
+//
+//            case NOT_EQUAL:
+//                return new FilterOperation() {
+//                    @Override
+//                    public void apply(Comparator cmp, Tuple input, Number threshold, Values filteredValues, Values rejectedValues) {
+//                        Number newValue = (Number) input.getValue(0);
+//                        //inequality
+//                        if (comparator.compare(newValue, threshold) != 0) {
+//                            filteredValues.add(newValue);
+//                        } else rejectedValues.add(newValue);
+//                    }
+//                };
+//            default:
+//                return null;
+//        }
+//    }
+//
+//
+//}

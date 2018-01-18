@@ -7,18 +7,10 @@ import org.apache.storm.windowing.TupleWindow;
 import java.util.List;
 import java.util.Map;
 
-public interface IWindowedAlgorithm {
-    Values executeWindowedAlgorithm(TupleWindow tupleWindow);
+public interface IWindowedAlgorithm extends FieldTransformer{
 
-//    int getWindowCount();
-//
-//    int getSlidingWindowCount();
-//
-//    BaseWindowedBolt.Duration getWindowDuration();
-//
-//    BaseWindowedBolt.Duration getWindowLag();
-//
-//    String getTimestampField();
+    Values executeWindowedAlgorithm(TupleWindow tupleWindow);
     public String[] getExtraFields();
     public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources);
+
 }

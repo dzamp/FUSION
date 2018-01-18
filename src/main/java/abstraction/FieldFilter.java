@@ -44,9 +44,13 @@ public class FieldFilter implements IAlgorithm, Serializable {
         return values;
     }
 
+
     @Override
-    public String[] getExtraFields() {
-        return new String[0];
+    public String[] transformFields(String[] incomingFields) {
+        Set<String> fields = new LinkedHashSet<>();
+        fields.addAll(Arrays.asList(incomingFields));
+        fields.removeAll(Arrays.asList(fieldsTobeRemoved));
+        return fields.toArray(new String[fields.size()]);
     }
 //
 //    @Override
