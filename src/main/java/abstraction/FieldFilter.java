@@ -16,6 +16,7 @@ import java.util.*;
 public class FieldFilter implements IAlgorithm, Serializable {
 
     protected String[] fieldsTobeRemoved;
+    protected Map<String, List<String>> inputFieldsFromSources;
 
     public FieldFilter() {
     }
@@ -42,6 +43,12 @@ public class FieldFilter implements IAlgorithm, Serializable {
         }
 
         return values;
+    }
+
+    @Override
+    public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
+        this.inputFieldsFromSources = inputFieldsFromSources;
+
     }
 
 

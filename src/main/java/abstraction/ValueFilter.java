@@ -7,6 +7,8 @@ import util.Operator;
 
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 public class ValueFilter  implements IAlgorithm , Serializable{
 
@@ -33,6 +35,7 @@ public class ValueFilter  implements IAlgorithm , Serializable{
 
 
     protected String fieldInStream = "";
+    protected Map<String, List<String>> inputFieldsFromSources;
 
 
     /**
@@ -106,6 +109,11 @@ public class ValueFilter  implements IAlgorithm , Serializable{
         if (filteredValues.size() > 0 ) return  filteredValues;
         //here in the values of the filtered/rejected values ALL the tuple is present!!!
         else return null;
+    }
+
+    @Override
+    public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
+        this.inputFieldsFromSources = inputFieldsFromSources;
     }
 
 

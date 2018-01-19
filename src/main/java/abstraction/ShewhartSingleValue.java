@@ -15,10 +15,8 @@ public class ShewhartSingleValue implements IAlgorithm, Serializable {
     protected double kplus = 3;
     protected double kminus = 3;
     protected int windowSize = 100, n=2;
-
-
-
     protected boolean emitEntireWindow = false;
+    protected Map<String, List<String>> inputFieldsFromSources;
 
 
     public ShewhartSingleValue() {
@@ -81,6 +79,12 @@ public class ShewhartSingleValue implements IAlgorithm, Serializable {
             n = 2; //reset the window
         this.previousState.nextState(curr_mean, curr_Variance);
         return values;
+    }
+
+    @Override
+    public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
+        this.inputFieldsFromSources = inputFieldsFromSources;
+
     }
 
 

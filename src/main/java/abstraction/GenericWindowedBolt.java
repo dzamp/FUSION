@@ -2,7 +2,6 @@ package abstraction;
 
 //import actions.BoltEmitter;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -14,7 +13,7 @@ import org.apache.storm.windowing.TupleWindow;
 
 import java.util.*;
 
-public class GenericWindowedBolt extends BaseWindowedBolt {
+public class GenericWindowedBolt extends BaseWindowedBolt implements FusionBolt {
 
     protected TopologyContext topologyContext;
     protected OutputCollector collector;
@@ -23,82 +22,106 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
     protected IWindowedAlgorithm algorithm;
     protected OutputFieldsDeclarer declarer;
     //convert to map of streamName to field list
-    protected Map<String, List<String>> incomingStreamsFieldsMap;
-    protected Map<String, List<String>> outcomingStreamsFieldsMap;
-    private String[] streamIds;
-    private String[] fieldNames;
+    protected Map<String, List<String>> sendingComponentToIncomingFieldsMap;
+    protected Map<String, List<String>> outgoingStreamsFieldsMap;
+    protected String[] incomingfieldNames = null;
+    protected String[] outgoingFieldNames = null;
+    protected List<String> streamIds = null;
+    protected boolean outgoingFieldsSet = false;
 
 
-    public GenericWindowedBolt outboundStreams(String... streamIds) {
-        this.streamIds = streamIds;
+    public GenericWindowedBolt withAlgorithm(IWindowedAlgorithm algo) {
+        this.streamIds = new ArrayList<>();
+        this.streamIds.add(Utils.DEFAULT_STREAM_ID);
+        this.algorithm = algo;
+        return this;
+    }
+
+    public GenericWindowedBolt withOutgoingStreams(String... streamIds) {
+        if (this.streamIds == null) new ArrayList<>();
+        this.streamIds.addAll(Arrays.asList(streamIds));
+        return this;
+    }
+
+
+    public GenericWindowedBolt addOutgoingStream(String streamId) {
+        this.streamIds.remove(Utils.DEFAULT_STREAM_ID);
+        this.streamIds.add(streamId);
         return this;
 
     }
 
     public GenericWindowedBolt withFields(String... fieldNames) {
-        this.fieldNames = fieldNames;
+        this.incomingfieldNames = fieldNames;
         return this;
     }
 
 
-    public GenericWindowedBolt withAlgorithm(IWindowedAlgorithm algo) {
-        this.algorithm = algo;
-        return this;
+    private void setOutgoingFields() {
+//        setInboundStreams();
+        //if the algorithm adds new fields to the stream add them here
+        outgoingFieldNames = algorithm.transformFields(incomingfieldNames);
+
+        outgoingStreamsFieldsMap = new HashMap<>();
+        if (outgoingFieldNames != null) {
+            Set<String> removeDuplicates = new LinkedHashSet<>();
+            removeDuplicates.addAll(Arrays.asList(outgoingFieldNames));
+            outgoingFieldNames = removeDuplicates.toArray(new String[removeDuplicates.size()]);
+            //fill the outcomingStreamMap to be used by the declarer
+            for (String stream : streamIds) {
+                outgoingStreamsFieldsMap.put(stream, Arrays.asList(outgoingFieldNames));
+            }
+        }
+        outgoingFieldsSet = true;
     }
+
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         super.prepare(stormConf, context, collector);
         this.topologyContext = context;
-        this.algorithm.setInputSources(context.getThisInputFields());
         this.collector = collector;
         this.configMap = stormConf;
-//        this.actions = new ArrayList<>();
-        setOutboundStreams();
+        //on the prepare method the topology has been validated and deployed
+        //therefore we can get the info about the topology
+        this.setInboundStreams(); //keep also the incoming streams in case we need them
+        this.algorithm.setInputSources(this.sendingComponentToIncomingFieldsMap);
     }
+
 
     private void setInboundStreams() {
         //first get the incoming streams
-        incomingStreamsFieldsMap = new HashMap<>();
-        topologyContext.getThisInputFields().keySet().forEach(stream -> {
-            List<String> fields = topologyContext.getThisInputFields().get(stream).get(Utils.DEFAULT_STREAM_ID);
-            incomingStreamsFieldsMap.put(stream, new ArrayList<>(fields));
-        });
-    }
-
-    private void setOutboundStreams() {
-        setInboundStreams();
-        outcomingStreamsFieldsMap = new HashMap<>();
-        if (streamIds == null) //if no
-            this.streamIds = new String[]{Utils.DEFAULT_STREAM_ID}; //default
-        if (fieldNames == null)
-            fieldNames = incomingStreamsFieldsMap.values().iterator().next().toArray(new String[0]);
-        //if the algorithm adds new fields to the stream add them here
-        if (algorithm.getExtraFields() != null) {
-            fieldNames = (String[]) ArrayUtils.addAll(fieldNames, algorithm.getExtraFields());
-        }
-        //fill the outcomingStreamMap to be used by the declarer
-        for (String stream : streamIds) {
-            outcomingStreamsFieldsMap.put(stream, Arrays.asList(fieldNames));
+        sendingComponentToIncomingFieldsMap = new HashMap<>();
+        Map<String, Map<String, List<String>>> inputFields = topologyContext.getThisInputFields();
+        List<String> fields = null;
+        for (String component : inputFields.keySet()) {
+            Map<String, List<String>> mapStreamFields = inputFields.get(component);
+            for (String stream : mapStreamFields.keySet()) {
+                fields = mapStreamFields.get(stream); //assume here that we have the same fields from each incoming component
+                break;
+            }
+            if(fields!=null)
+                sendingComponentToIncomingFieldsMap.put(component,fields);
         }
     }
 
-    public TupleWindow beforeAlgorithmExecution(TupleWindow tupleWindow) {
-        return tupleWindow;
+    public void emit(Values values) {
+        if (values != null && values.size() > 0) {
+            this.outgoingStreamsFieldsMap.forEach((stream, stringFields) ->
+                    //no need to use emit(values), since they it maps to this emit with stream-id = "default"
+                    collector.emit(stream, values)
+            );
+        }
     }
 
-    public Values afterAlgorithmExecution(Values values) {
-        return values;
-    }
+
+
 
     @Override
     public void execute(TupleWindow inputWindow) {
-        beforeAlgorithmExecution(inputWindow);
         Values values = algorithm.executeWindowedAlgorithm(inputWindow);
-        afterAlgorithmExecution(values);
         emit(values);
     }
-
 
     @Override
     public void cleanup() {
@@ -107,9 +130,10 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        if (this.outcomingStreamsFieldsMap != null) {
-            this.outcomingStreamsFieldsMap.forEach((stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
-        }
+        if (!outgoingFieldsSet)
+            setOutgoingFields();
+        if (this.outgoingStreamsFieldsMap != null)
+            this.outgoingStreamsFieldsMap.forEach((stream, fieldStrings) -> declarer.declareStream(stream, new Fields(fieldStrings)));
     }
 
     @Override
@@ -118,30 +142,29 @@ public class GenericWindowedBolt extends BaseWindowedBolt {
     }
 
 
-//    public void addAction(BoltEmitter boltEmitter) {
-//        actions.add(boltEmitter);
-//    }
-
-//    public void emit(Values values) {
-//        if (values != null) {
-//            this.actions.forEach(boltEmitter -> {
-//                try {
-//                    boltEmitter.execute(this.collector, boltEmitter.getStreamId(), values);
-//                } catch (FieldsMismatchException e) {
-//                    e.printStackTrace();
-//                }
-//            });
-//        }
-//    }
-
-
-    public void emit(Values values) {
-        if (values != null && values.size() > 0) {
-            this.outcomingStreamsFieldsMap.forEach((stream, stringFields) ->
-                    //no need to use emit(values), since they it maps to this emit with stream-id = "default"
-                    collector.emit(stream, values)
-            );
+    @Override
+    public void setFields(boolean terminal, String... fieldNames) {
+        withFields(fieldNames);
+        if (!terminal)
+            setOutgoingFields();
+        if (terminal) outgoingFieldsSet = true;
+        if (fieldNames == null) {//there is a chance that this node will be terminal, therefore null for its outgoing streams and fields
+            this.outgoingFieldNames = null;
+            this.outgoingStreamsFieldsMap = new HashMap<>();
         }
     }
+
+    @Override
+    public void addOutgoingStreamName(String streamId) {
+        addOutgoingStream(streamId);
+    }
+
+    @Override
+    public String[] getOutgoingFields() {
+        if (outgoingFieldsSet) return this.outgoingFieldNames;
+        else return null;
+    }
+
+
 
 }

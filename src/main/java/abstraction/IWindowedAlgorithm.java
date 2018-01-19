@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface IWindowedAlgorithm extends FieldTransformer{
-
     Values executeWindowedAlgorithm(TupleWindow tupleWindow);
-    public String[] getExtraFields();
-    public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources);
-
+     void setInputSources(Map<String,  List<String>> incomingStreamsFieldsMap);
 }

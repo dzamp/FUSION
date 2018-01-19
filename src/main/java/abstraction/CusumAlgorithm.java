@@ -11,12 +11,12 @@ import java.util.*;
 //TODO this algortihm will emit new fields! how to send them to Generic Bolt?
 public class CusumAlgorithm implements IAlgorithm, Serializable{
 
-    private final double median, drift, threshold;
-    private  boolean enableUpperBound=true, enableLowerBound=false;
-    private int position=0;
-    private double positiveCusum=0.0, negativeCusum = 0.0;
-    private String fieldUpperBoundBreached="cusumUpperBound", fieldLowerBoundBreached = "cusumLowerBound";
-
+    protected final double median, drift, threshold;
+    protected  boolean enableUpperBound=true, enableLowerBound=false;
+    protected int position=0;
+    protected double positiveCusum=0.0, negativeCusum = 0.0;
+    protected String fieldUpperBoundBreached="cusumUpperBound", fieldLowerBoundBreached = "cusumLowerBound";
+    protected Map<String, List<String>> inputFieldsFromSources;
 
 
     public CusumAlgorithm(double median, double drift, double threshold){
@@ -86,6 +86,21 @@ public class CusumAlgorithm implements IAlgorithm, Serializable{
         return values;
     }
 
+    @Override
+    public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
+        this.inputFieldsFromSources = inputFieldsFromSources;
+
+    }
+
+//    @Override
+//    public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources) {
+//        this.inputFieldsFromSources = inputFieldsFromSources;
+//        inputFieldsFromSources = new HashMap<>();
+//        for (String stream : this.inputFieldsFromSources.keySet()) {
+//            List<String> fields = this.inputFieldsFromSources.get(stream).get("default");
+//            inputFieldsFromSources.put(stream, new ArrayList<>(fields));
+//        }
+//    }
 
 
     @Override

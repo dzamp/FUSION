@@ -17,7 +17,7 @@
  */
 package flux;
 
-import abstraction.FusionIRichBolt;
+import abstraction.FusionBolt;
 import consumers.FusionIRichSpout;
 import flux.fusion.StreamFieldsManager;
 import flux.model.*;
@@ -637,7 +637,6 @@ public class FluxBuilder {
         for (SpoutDef spoutDef : spoutDefs) {
             IRichSpout spout = context.getSpout(spoutDef.getId());
             if (spout instanceof FusionIRichSpout) {
-                Stack<FusionBoltDef> participatingBolts = new Stack<>();
                 for (StreamDef streamDef : streamDefs) {
                     String streamId = null;
                     if (streamDef.getFrom().equals(spoutDef.getId())) {
@@ -668,13 +667,13 @@ public class FluxBuilder {
      * @param fields
      */
     public static void findConnectingBoltsDFS(FusionBoltDef fusionBoltDefFrom, List<StreamDef> streamDefs, ExecutionContext context, String[] fields) {
-        FusionIRichBolt from = (FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId());
+        FusionBolt from = (FusionBolt) context.getBolt(fusionBoltDefFrom.getId());
+
         boolean isTerminal = true;
         for (StreamDef streamDef : streamDefs) {
             String streamId = null;
             if (streamDef.getFrom().equals(fusionBoltDefFrom.getId())) {
                 isTerminal = false;
-
                 if (streamDef.getGrouping().getStreamId() != null) {
                     streamId = streamDef.getGrouping().getStreamId();
                     addStreamToVertex(context, fusionBoltDefFrom, streamId);
@@ -690,7 +689,7 @@ public class FluxBuilder {
         }
         if (isTerminal) {
             //if node is terminal then we have to explicity invoke setFields with true parameter, in order to avoid building the outcoming fields
-            ((FusionIRichBolt) context.getBolt(fusionBoltDefFrom.getId())).setFields(true, fields);
+            ((FusionBolt) context.getBolt(fusionBoltDefFrom.getId())).setFields(true, fields);
         }
     }
 
@@ -708,11 +707,13 @@ public class FluxBuilder {
                     .addOutgoingStreamName(streamId);
         }
         if (vertex instanceof FusionBoltDef) {
-            ((FusionIRichBolt) context.getBolt(vertex.getId()))
-                    .addOutgoingStreamName(streamId);
-        }
-    }
+            if (context.getBolt(vertex.getId()) instanceof FusionBolt) {
+                ((FusionBolt) context.getBolt(vertex.getId())).addOutgoingStreamName(streamId);
+            }
 
+        }
+
+    }
 
 
     /**

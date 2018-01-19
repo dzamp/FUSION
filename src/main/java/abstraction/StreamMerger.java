@@ -1,7 +1,5 @@
 package abstraction;
 
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.base.BaseWindowedBolt;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
@@ -29,17 +27,12 @@ import java.util.*;
 
 public class StreamMerger implements IWindowedAlgorithm, Serializable {
 
-    protected Map<String, Map<String, List<String>>> inputFieldsFromSources;
-    protected Map<String, List<String>> streamFieldsMap;
+//    protected Map<String, Map<String, List<String>>> inputFieldsFromSources;
+    protected Map<String, List<String>> inputFieldsFromSources;
 
 
-    public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources) {
+    public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
         this.inputFieldsFromSources = inputFieldsFromSources;
-        streamFieldsMap = new HashMap<>();
-        for (String stream : this.inputFieldsFromSources.keySet()) {
-            List<String> fields = this.inputFieldsFromSources.get(stream).get("default");
-            streamFieldsMap.put(stream, new ArrayList<>(fields));
-        }
     }
 
     @Override
@@ -53,7 +46,7 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
         for (Tuple tuple : tupleWindow.get()) {
             streamValues.get(tuple.getSourceComponent()).add((Values) tuple.getValues());
         }
-        return new Values(streamValues, streamFieldsMap);
+        return new Values(streamValues, inputFieldsFromSources);
         //TODO how to access the map on the next one
 //        Map<String,List<Values>> streamValues = (Map<String, List<Values>>) input.getValues().get(0);
 //        for(String stream: streamValues.keySet()){
@@ -66,11 +59,6 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
 //        }
     }
 
-    @Override
-    public String[] getExtraFields() {
-        return null;
-        //todo here we might have issues
-    }
 
 
     @Override

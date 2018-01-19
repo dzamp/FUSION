@@ -10,6 +10,7 @@ import java.util.Map;
 
 public class ObjectCount implements IAlgorithm, Serializable {
     private HashMap<Object,Integer> countMap;
+    protected Map<String, List<String>> inputFieldsFromSources;
 
     public ObjectCount(){
         this.countMap = new HashMap<>();
@@ -24,6 +25,12 @@ public class ObjectCount implements IAlgorithm, Serializable {
             countMap.put(value, countMap.get(value)+1);
         }
         return (Values) tuple.getValues();
+    }
+
+    @Override
+    public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
+        this.inputFieldsFromSources = inputFieldsFromSources;
+
     }
 
 

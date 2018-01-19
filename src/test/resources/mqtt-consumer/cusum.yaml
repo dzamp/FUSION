@@ -36,11 +36,31 @@ mqttconfig:
       - "java.lang.Double"
       - "java.lang.Long"
 
+  - id: "mqtt-config2"
+    className: "flux.model.extended.MqttSpoutConfigDef"
+    brokerUrl: "tcp://localhost:1883"
+    topic: "health_monitor/temperature"
+    clientId: "hello"
+    regex: ","
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
+    classes:
+      - "java.lang.String"
+      - "java.lang.Double"
+      - "java.lang.Long"
+
 spouts:
-  - id: "spout-1"
+  - id: "blood-spout"
     className: "consumers.MqttConsumerSpout"
     constructorArgs:
       - ref: "mqtt-config"
+
+#  - id: "temp-spout"
+#    className: "consumers.MqttConsumerSpout"
+#    constructorArgs:
+#      - ref: "mqtt-config"
 
 bolts:
   - id: "bolt-2"
@@ -66,16 +86,23 @@ fusionbolts:
 
 #stream definitions
 streams:
-  - name: "spout-1 --> cusum-bolt" # name isn't used (placeholder for logging, UI, etc.)
-    from: "spout-1"
+  - name: "blood-spout --> cusum-bolt" # name isn't used (placeholder for logging, UI, etc.)
+    from: "blood-spout"
     to: "cusum-bolt"
     grouping:
       streamId: "stream1"
-      type: FIELDS
-      args: ["value"]
+      type: SHUFFLE
 
-  - name: "spout-1 --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
-    from: "spout-1"
+
+#  - name: "temp-spout --> cusum-bolt" # name isn't used (placeholder for logging, UI, etc.)
+#    from: "temp-spout"
+#    to: "cusum-bolt"
+#    grouping:
+#      streamId: "stream213"
+#      type: SHUFFLE
+
+  - name: "blood-spout --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
+    from: "blood-spout"
     to: "bolt-2"
     grouping:
       streamId: "stream2"

@@ -20,7 +20,7 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
 
     //TODO what should time be? A timestamp in the stream?
-    protected Map<String, Map<String, List<String>>> inputFieldsFromSources;
+    protected Map<String, List<String>> inputFieldsFromSources;
 
     protected boolean emitEntireWindow = false;
     //TODO what about timestamp? if this algorithm emits many values it cannot be combined with a timestamp merger
@@ -91,10 +91,6 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
         else return new Values(currentTuple,outcome);
     }
 
-    @Override
-    public String[] getExtraFields() {
-        return new String[]{"shewharte"};
-    }
 
     @Override
     public String[] transformFields(String[] incomingFields) {
@@ -102,7 +98,7 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
         return null;
     }
     @Override
-    public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources) {
+    public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
         this.inputFieldsFromSources = inputFieldsFromSources;
     }
 

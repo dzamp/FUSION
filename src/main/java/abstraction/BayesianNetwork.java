@@ -40,11 +40,14 @@ public class BayesianNetwork implements IAlgorithm, Serializable{
     protected Map<String, List<Values>> streamValues;
     protected Map<String, List<String>> streamFieldsMap;
     protected Map<String, BayesNode> streamToNodeMap;
+    protected Map<String, List<String>> inputFieldsFromSources;
 
     public BayesianNetwork() {
         bayesNet = new BayesNet();
         networkMap = new HashMap<>();
     }
+
+
 
     public BayesianNetwork withInference(String inferenceNodeName, String inferenceAlgorithm) {
         switch (inferenceAlgorithm) {
@@ -184,6 +187,21 @@ public class BayesianNetwork implements IAlgorithm, Serializable{
         return null;
     }
 
+    @Override
+    public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
+        this.inputFieldsFromSources = inputFieldsFromSources;
+
+    }
+
+//    @Override
+//    public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources) {
+//        this.inputFieldsFromSources = inputFieldsFromSources;
+//        inputFieldsFromSources = new HashMap<>();
+//        for (String stream : this.inputFieldsFromSources.keySet()) {
+//            List<String> fields = this.inputFieldsFromSources.get(stream).get("default");
+//            inputFieldsFromSources.put(stream, new ArrayList<>(fields));
+//        }
+//    }
 
 
     @Override
