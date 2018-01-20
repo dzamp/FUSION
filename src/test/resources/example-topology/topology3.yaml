@@ -5,17 +5,13 @@ config:
 
 
 components:
-
-  - id: "direct-over-emitter"
-    className: "actions.BoltEmitter"
+  - id: "filter"
+    className: "abstraction.ValueFilter"
     constructorArgs:
-      - ["bNumber"]
-
-#  - id: "over-threshold-emitter"
-#    className: "actions.BoltEmittertter constructorArgs:
-#      - "under"
-#      - ["bNumber"]
-
+      - "java.lang.Integer"
+      - 80
+      - 0
+      - "gt"
 
 # spout definitions
 spouts:
@@ -30,18 +26,12 @@ spouts:
     parallelism: 2
 
 # bolt definitions
-bolts:
+fusionbolts:
   - id: "bolt-1"
-    className: "algorithms.ThresholdBolt"
-    constructorArgs:
-      - "java.lang.Integer"
-      - 80
-      - "gt"
-#      - ref : "actions-list"
-#      - [ ref :  "direct-emitter" ]
+    className: "abstraction.GenericBolt"
     configMethods:
-      - name: "addConditionTrueAction"
-        args: [ref: "direct-over-emitter"]
+      - name: "withAlgorithm"
+        args: [ref: "filter"]
 #      - name: "addConditionFalseAction"
 #        args: [ref: "over-threshold-emitter"]
 #      - name: "addUnderAction"

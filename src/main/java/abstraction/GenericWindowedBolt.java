@@ -107,6 +107,7 @@ public class GenericWindowedBolt extends BaseWindowedBolt implements FusionBolt 
 
     public void emit(Values values) {
         if (values != null && values.size() > 0) {
+            if (this.outgoingStreamsFieldsMap != null)
             this.outgoingStreamsFieldsMap.forEach((stream, stringFields) ->
                     //no need to use emit(values), since they it maps to this emit with stream-id = "default"
                     collector.emit(stream, values)

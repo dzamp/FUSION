@@ -43,7 +43,7 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     protected MqttClient client;
     private boolean outgoingFieldsSet = false;
     private Map configMap = null;
-
+    private int count = 0;
 
     public MqttConsumerSpout(MqttSpoutConfigDef def) {
         this.config = def.createMqttConfig();

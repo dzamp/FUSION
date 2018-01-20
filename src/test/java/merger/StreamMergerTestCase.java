@@ -16,7 +16,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class StreamMergerTestCase {
-    Map<String, Map<String, List<String>>> streamsToFieldsMap;
+    private Map<String,List<String>> streamsToFieldsMap;
+
 
     public static Answer tupleWindowMock() {
         return new Answer() {
@@ -49,12 +50,12 @@ public class StreamMergerTestCase {
     public void setUp() {
         //this is how the expected map is from storm
         streamsToFieldsMap = new HashMap<>();
-        Map<String, List<String>> value = new HashMap<>();
-        value.put("default", Arrays.asList("id, temperature, timestamp"));
-        streamsToFieldsMap.put("temperature-spout", value);
-        value = new HashMap<>();
-        value.put("default", Arrays.asList("id, humidity, timestamp"));
-        streamsToFieldsMap.put("humidity-spout", value);
+        List<String> values = new ArrayList<>();
+        streamsToFieldsMap.put("default", Arrays.asList("id, temperature, timestamp"));
+//        streamsToFieldsMap.put("temperature-spout", value);
+//        value = new HashMap<>();
+//        value.put("default", Arrays.asList("id, humidity, timestamp"));
+//        streamsToFieldsMap.put("humidity-spout", value);
 
 
 

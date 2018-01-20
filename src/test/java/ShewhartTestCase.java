@@ -98,7 +98,7 @@ public class ShewhartTestCase {
         @Override
         public Values executeWindowedAlgorithm(TupleWindow tupleWindow) {
             int outcome = 0;
-            int n = tupleWindow.getNew().size();
+            int n = tupleWindow.get().size();
             double UCL,LCL;
             if(n==0) try {
                 throw new AlgorithmDeclarationException("Cannot divide by zero");
@@ -142,7 +142,7 @@ public class ShewhartTestCase {
         shewhartAlgorithm.setWriter("shewhart_");
         TupleWindow tupleWindow = mock(TupleWindow.class);
 
-        when(tupleWindow.getNew()).thenAnswer(shewhartAnswer());
+        when(tupleWindow.get()).thenAnswer(shewhartAnswer());
 //        when(tupleWindow.getNew().size()).thenReturn(5);
         Values values;
         for(int i=0; i< 300; i++){

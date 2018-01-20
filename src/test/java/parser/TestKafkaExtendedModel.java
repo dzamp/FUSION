@@ -28,4 +28,21 @@ public class TestKafkaExtendedModel {
     }
 
 
+    @Test
+    public void testKafkaFusionSpoutShewhart2() {
+        CommandLine cmd = mock(CommandLine.class,RETURNS_DEEP_STUBS);
+        when(cmd.getArgList().get(0)).thenReturn(
+                new String("src/test/resources/kafka-consumer/extended/kafka-single-shewhart.yaml"));
+        when(cmd.hasOption("filter")).thenReturn(false);
+        when(cmd.hasOption("resource")).thenReturn(false);
+        try {
+            FluxParserTest.runCli(cmd);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+            fail("Exception in creating topology");
+        }
+        System.out.println("Topology parsed successfully");
+    }
+
 }
