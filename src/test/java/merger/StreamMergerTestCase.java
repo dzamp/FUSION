@@ -51,14 +51,8 @@ public class StreamMergerTestCase {
         //this is how the expected map is from storm
         streamsToFieldsMap = new HashMap<>();
         List<String> values = new ArrayList<>();
-        streamsToFieldsMap.put("default", Arrays.asList("id, temperature, timestamp"));
-//        streamsToFieldsMap.put("temperature-spout", value);
-//        value = new HashMap<>();
-//        value.put("default", Arrays.asList("id, humidity, timestamp"));
-//        streamsToFieldsMap.put("humidity-spout", value);
-
-
-
+        streamsToFieldsMap.put("temperature-spout", Arrays.asList(new String[]{"id", "temperature", "timestamp"}));
+        streamsToFieldsMap.put("humidity-spout", Arrays.asList(new String[]{"id", "humidity", "timestamp"}));
     }
 
     @Test
@@ -77,7 +71,7 @@ public class StreamMergerTestCase {
         });
 
         ArrayList<Values> temperatureValues = (ArrayList<Values>) ((HashMap<String,List<Values>>)values.get(0)).get("temperature-spout");
-        humidityValues.forEach(objects -> {
+        temperatureValues.forEach(objects -> {
             assertEquals("temp",objects.get(0));
         });
 

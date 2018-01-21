@@ -1,0 +1,95 @@
+name: "mqtt-topology-direct"
+config:
+  topology.workers: 1
+#  topology.debug: true
+
+
+components:
+  - id: "merger"
+    className: "abstraction.StreamMerger"
+
+  - id : "count"
+    className: "org.apache.storm.topology.base.BaseWindowedBolt$Count"
+    constructorArgs:
+      - 100
+
+
+mqttconfig:
+  - id: "mqtt-config"
+    className: "flux.model.extended.MqttSpoutConfigDef"
+    brokerUrl: "tcp://localhost:1883"
+    topic: "health_monitor/blood_pressure"
+    clientId: "hello"
+    regex: ","
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
+    classes:
+      - "java.lang.String"
+      - "java.lang.Double"
+      - "java.lang.Long"
+
+  - id: "mqtt-config2"
+    className: "flux.model.extended.MqttSpoutConfigDef"
+    brokerUrl: "tcp://localhost:1883"
+    topic: "health_monitor/temperature"
+    clientId: "hello"
+    regex: ","
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
+    classes:
+      - "java.lang.String"
+      - "java.lang.Double"
+      - "java.lang.Long"
+
+
+
+spouts:
+  - id: "blood-spout"
+    className: "consumers.MqttConsumerSpout"
+    constructorArgs:
+      - ref: "mqtt-config"
+
+  - id: "temp-spout"
+    className: "consumers.MqttConsumerSpout"
+    constructorArgs:
+      - ref: "mqtt-config2"
+
+
+
+# bolt definitions
+fusionbolts:
+  - id: "merger-bolt"
+    className: "abstraction.GenericWindowedBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "merger"]
+      - name: "withTumblingWindow"
+        args: [ref: "count"]
+
+
+
+#stream definitions
+streams:
+  - name: "blood-spout --> merger-bolt" # name isn't used (placeholder for logging, UI, etc.)
+    from: "blood-spout"
+    to: "merger-bolt"
+    grouping:
+      type: SHUFFLE
+
+
+  - name: "temp-spout --> merger-bolt" # name isn't used (placeholder for logging, UI, etc.)
+    from: "temp-spout"
+    to: "merger-bolt"
+    grouping:
+      type: SHUFFLE
+
+
+
+
+
+
+

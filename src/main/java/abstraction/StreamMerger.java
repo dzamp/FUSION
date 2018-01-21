@@ -1,5 +1,6 @@
 package abstraction;
 
+import org.apache.log4j.Logger;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
@@ -29,14 +30,16 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
 
 //    protected Map<String, Map<String, List<String>>> inputFieldsFromSources;
     protected Map<String, List<String>> inputFieldsFromSources;
-
+//    protected Logger log = Logger.getLogger(StreamMerger.class);
 
     public void setInputSources(Map<String, List<String>> inputFieldsFromSources) {
         this.inputFieldsFromSources = inputFieldsFromSources;
     }
 
+
+
     @Override
-    public Values executeWindowedAlgorithm(TupleWindow tupleWindow) {
+    public Values executeWindowedAlgorithm(TupleWindow tupleWindow) {;
         Map<String, List<Values>> streamValues = new HashMap<>();
 
         Set<String> streams = inputFieldsFromSources.keySet();
@@ -46,6 +49,10 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
         for (Tuple tuple : tupleWindow.get()) {
             streamValues.get(tuple.getSourceComponent()).add((Values) tuple.getValues());
         }
+
+        System.out.println("Processing tuples: blood : " + streamValues.get("blood-spout").size());
+        System.out.println("Processing tuples: temp : " + streamValues.get("temp-spout").size());
+
         return new Values(streamValues, inputFieldsFromSources);
         //TODO how to access the map on the next one
 //        Map<String,List<Values>> streamValues = (Map<String, List<Values>>) input.getValues().get(0);

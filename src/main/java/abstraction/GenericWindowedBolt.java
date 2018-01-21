@@ -9,9 +9,11 @@ import org.apache.storm.topology.base.BaseWindowedBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.Utils;
+import org.apache.storm.windowing.TimestampExtractor;
 import org.apache.storm.windowing.TupleWindow;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class GenericWindowedBolt extends BaseWindowedBolt implements FusionBolt {
 
@@ -168,4 +170,73 @@ public class GenericWindowedBolt extends BaseWindowedBolt implements FusionBolt 
 
 
 
+//    @Override
+//    public BaseWindowedBolt withWindow(Count windowLength, Count slidingInterval) {
+//        return super.withWindow(windowLength, slidingInterval);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withWindow(Count windowLength, Duration slidingInterval) {
+//        return super.withWindow(windowLength, slidingInterval);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withWindow(Duration windowLength, Count slidingInterval) {
+//        return super.withWindow(windowLength, slidingInterval);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withWindow(Duration windowLength, Duration slidingInterval) {
+//        return super.withWindow(windowLength, slidingInterval);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withWindow(Count windowLength) {
+//        return super.withWindow(windowLength);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withWindow(Duration windowLength) {
+//        return super.withWindow(windowLength);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withTumblingWindow(Count count) {
+//        return super.withTumblingWindow(count);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withTumblingWindow(Duration duration) {
+//        return super.withTumblingWindow(duration);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withTimestampField(String fieldName) {
+//        return super.withTimestampField(fieldName);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withTimestampExtractor(TimestampExtractor timestampExtractor) {
+//        return super.withTimestampExtractor(timestampExtractor);
+//    }
+//
+//    @Override
+//    public TimestampExtractor getTimestampExtractor() {
+//        return super.getTimestampExtractor();
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withLateTupleStream(String streamId) {
+//        return super.withLateTupleStream(streamId);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withLag(Duration duration) {
+//        return super.withLag(duration);
+//    }
+//
+//    @Override
+//    public BaseWindowedBolt withWatermarkInterval(Duration interval) {
+//        return super.withWatermarkInterval(interval);
+//    }
 }

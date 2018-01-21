@@ -96,6 +96,10 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     }
 
     public void emit(Values values) {
+        count++;
+        if (count % 100 == 0) {
+            System.out.println("Spout with topic " + config.getTopic() + " reports " + count);
+        }
         if (values != null && values.size() > 0) {
             this.outcomingStreamsFieldsMap.forEach((stream, stringFields) ->
                     //no need to use emit(values), since they it maps to this emit with stream-id = "default"

@@ -19,7 +19,6 @@ package flux;
 
 import abstraction.FusionBolt;
 import consumers.FusionIRichSpout;
-import flux.fusion.StreamFieldsManager;
 import flux.model.*;
 import flux.model.extended.FusionBoltDef;
 import flux.model.extended.KafkaSpoutConfigDef;
@@ -38,7 +37,6 @@ import java.util.*;
 
 public class FluxBuilder {
     private static Logger LOG = LoggerFactory.getLogger(FluxBuilder.class);
-    private StreamFieldsManager streamFieldsManager;
 
     /**
      * Given a topology definition, return a populated `org.apache.storm.Config` instance.
@@ -329,25 +327,31 @@ public class FluxBuilder {
     public static Object buildObject(ObjectDef def, ExecutionContext context) throws ClassNotFoundException,
             IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
         Class clazz = Class.forName(def.getClassName());
+
         Object obj = null;
-        if (def.hasConstructorArgs()) {
-            LOG.debug("Found constructor arguments in definition: " + def.getConstructorArgs().getClass().getName());
-            List<Object> cArgs = def.getConstructorArgs();
-            if (def.hasReferences()) {
-                cArgs = resolveReferences(cArgs, context);
-            }
-            Constructor con = findCompatibleConstructor(cArgs, clazz);
-            if (con != null) {
-                LOG.debug("Found something seemingly compatible, attempting invocation...");
-                obj = con.newInstance(getArgsWithListCoercian(cArgs, con.getParameterTypes()));
+        if (!clazz.isEnum()) {
+            if (def.hasConstructorArgs()) {
+                LOG.debug("Found constructor arguments in definition: " + def.getConstructorArgs().getClass().getName());
+                List<Object> cArgs = def.getConstructorArgs();
+                if (def.hasReferences()) {
+                    cArgs = resolveReferences(cArgs, context);
+                }
+                Constructor con = findCompatibleConstructor(cArgs, clazz);
+                if (con != null) {
+                    LOG.debug("Found something seemingly compatible, attempting invocation...");
+                    obj = con.newInstance(getArgsWithListCoercian(cArgs, con.getParameterTypes()));
+                } else {
+                    String msg = String.format("Couldn't find a suitable constructor for class '%s' with arguments '%s'.",
+                            clazz.getName(),
+                            cArgs);
+                    throw new IllegalArgumentException(msg);
+                }
             } else {
-                String msg = String.format("Couldn't find a suitable constructor for class '%s' with arguments '%s'.",
-                        clazz.getName(),
-                        cArgs);
-                throw new IllegalArgumentException(msg);
+                obj = clazz.newInstance();
             }
-        } else {
-            obj = clazz.newInstance();
+        }
+        else {
+
         }
         applyProperties(def, obj, context);
         invokeConfigMethods(def, obj, context);
