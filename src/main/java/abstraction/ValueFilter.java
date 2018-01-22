@@ -116,6 +116,11 @@ public class ValueFilter  implements IAlgorithm , Serializable{
         this.inputFieldsFromSources = inputFieldsFromSources;
     }
 
+    @Override
+    public void prepare() {
+        
+    }
+
 
     /**
      * Returns a filterOperation implementation that will filterOperation each input value from the stream. Returns two lists of Values,

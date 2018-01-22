@@ -81,6 +81,7 @@ public class GenericBolt implements FusionBolt, IRichBolt {
         this.configMap = map;
         //on the prepare method the topology has been validated and deployed
         //therefore we can get the info about the topology
+        this.algorithm.prepare();
         setInboundStreams();
         this.algorithm.setInputSources(this.sendingComponentToIncomingFieldsMap);
     }

@@ -15,9 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package flux.model;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+package flux.model;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,16 +28,13 @@ import java.util.Map;
  * and properties, can be instantiated.
  */
 public class ObjectDef {
-//    @JacksonXmlProperty(localName = "className")
     private String className;
-//    @JacksonXmlProperty(localName = "constructorArgs")
     private List<Object> constructorArgs;
-//    @JacksonXmlProperty(localName = "hasReferences")
     private boolean hasReferences;
-//    @JacksonXmlProperty(localName = "properties")
     private List<PropertyDef> properties;
-//    @JacksonXmlProperty(localName = "configMethods")
     private List<ConfigMethodDef> configMethods;
+    private String factory;
+    private List<Object> factoryArgs;
 
     public String getClassName() {
         return className;
@@ -52,13 +48,17 @@ public class ObjectDef {
         return constructorArgs;
     }
 
+    /**
+     * Sets the arguments for the constructor and checks for references.
+     * @param constructorArgs Constructor arguments
+     */
     public void setConstructorArgs(List<Object> constructorArgs) {
 
         List<Object> newVal = new ArrayList<Object>();
-        for(Object obj : constructorArgs){
-            if(obj instanceof LinkedHashMap){
+        for (Object obj : constructorArgs) {
+            if (obj instanceof LinkedHashMap) {
                 Map map = (Map)obj;
-                if(map.containsKey("ref") && map.size() == 1) {
+                if (map.containsKey("ref") && map.size() == 1) {
                     newVal.add(new BeanReference((String) map.get("ref")));
                     this.hasReferences = true;
                 } else if (map.containsKey("reflist") && map.size() == 1) {
@@ -74,11 +74,11 @@ public class ObjectDef {
         this.constructorArgs = newVal;
     }
 
-    public boolean hasConstructorArgs(){
+    public boolean hasConstructorArgs() {
         return this.constructorArgs != null && this.constructorArgs.size() > 0;
     }
 
-    public boolean hasReferences(){
+    public boolean hasReferences() {
         return this.hasReferences;
     }
 
@@ -96,5 +96,50 @@ public class ObjectDef {
 
     public void setConfigMethods(List<ConfigMethodDef> configMethods) {
         this.configMethods = configMethods;
+    }
+
+    public boolean hasFactory() {
+        return this.factory != null && !this.factory.isEmpty();
+    }
+
+    public boolean hasFactoryArgs() {
+        return this.factoryArgs != null && this.factoryArgs.size() > 0;
+    }
+
+    public String getFactory() {
+        return this.factory;
+    }
+
+    public void setFactory(String factory) {
+        this.factory = factory;
+    }
+
+    public List<Object> getFactoryArgs() {
+        return this.factoryArgs;
+    }
+
+    /**
+     * Sets factory method arguments and checks for references.
+     * @param factoryArgs factory method arguments
+     */
+    public void setFactoryArgs(List<Object> factoryArgs) {
+        List<Object> newVal = new ArrayList<Object>();
+        for (Object obj : factoryArgs) {
+            if (obj instanceof LinkedHashMap) {
+                Map map = (Map)obj;
+                if (map.containsKey("ref") && map.size() == 1) {
+                    newVal.add(new BeanReference((String) map.get("ref")));
+                    this.hasReferences = true;
+                } else if (map.containsKey("reflist") && map.size() == 1) {
+                    newVal.add(new BeanListReference((List<String>) map.get("reflist")));
+                    this.hasReferences = true;
+                } else {
+                    newVal.add(obj);
+                }
+            } else {
+                newVal.add(obj);
+            }
+        }
+        this.factoryArgs = newVal;
     }
 }

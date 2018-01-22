@@ -7,10 +7,10 @@ config:
 mqttconfig:
   - id: "mqtt-config"
     className: "flux.model.extended.MqttSpoutConfigDef"
-    brokerUrl: "tcp://localhost:1883"
-    topic: "health_monitor/blood_pressure"
-    clientId: "hello"
-    regex: ","
+    brokerUrl: "${BROKER_URL}"
+    topic: "${TOPIC}"
+    clientId: "${CLIENT_ID}"
+    regex: "${REGEX}"
     fields:
       - "id"
       - "value"

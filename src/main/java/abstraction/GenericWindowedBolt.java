@@ -84,6 +84,7 @@ public class GenericWindowedBolt extends BaseWindowedBolt implements FusionBolt 
         this.topologyContext = context;
         this.collector = collector;
         this.configMap = stormConf;
+        this.algorithm.prepare();
         //on the prepare method the topology has been validated and deployed
         //therefore we can get the info about the topology
         this.setInboundStreams(); //keep also the incoming streams in case we need them

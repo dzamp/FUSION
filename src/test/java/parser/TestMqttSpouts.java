@@ -13,7 +13,7 @@ public class TestMqttSpouts {
     @Test
     public void testMqttTopology(){
         CommandLine cmd = mock(CommandLine.class,RETURNS_DEEP_STUBS);
-        when(cmd.getArgList().get(0)).thenReturn(new String("src/test/resources/mqtt-consumer/mqttTopology.yaml"));
+        when(cmd.getArgList().get(0)).thenReturn(new String("src/test/resources/mqtt-consumer/cusum.yaml"));
         when(cmd.hasOption("filter")).thenReturn(false);
         when(cmd.hasOption("resource")).thenReturn(false);
         try {
@@ -27,9 +27,26 @@ public class TestMqttSpouts {
     }
 
     @Test
-    public void testMqttDirectTopology(){
+    public void testMqttShewhartSingleTopology(){
         CommandLine cmd = mock(CommandLine.class,RETURNS_DEEP_STUBS);
-        when(cmd.getArgList().get(0)).thenReturn(new String("src/test/resources/mqtt-consumer/mqttDirectTopology.yaml"));
+        when(cmd.getArgList().get(0)).thenReturn(new String("src/test/resources/mqtt-consumer/extended/mqtt-shewhart-single.yaml"));
+        when(cmd.hasOption("filter")).thenReturn(false);
+        when(cmd.hasOption("resource")).thenReturn(false);
+        try {
+            FluxParserTest.runCli(cmd);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+            fail("Exception in creating topology");
+        }
+        System.out.println("Topology parsed successfully");
+    }
+
+
+    @Test
+    public void testMqttShewhartTubmle(){
+        CommandLine cmd = mock(CommandLine.class,RETURNS_DEEP_STUBS);
+        when(cmd.getArgList().get(0)).thenReturn(new String("src/test/resources/mqtt-consumer/extended/mqtt-shewhart-tumble.yaml"));
         when(cmd.hasOption("filter")).thenReturn(false);
         when(cmd.hasOption("resource")).thenReturn(false);
         try {

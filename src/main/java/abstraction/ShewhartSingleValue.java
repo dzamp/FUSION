@@ -87,6 +87,11 @@ public class ShewhartSingleValue implements IAlgorithm, Serializable {
 
     }
 
+    @Override
+    public void prepare() {
+
+    }
+
 
     @Override
     public String[] transformFields(String[] incomingFields) {

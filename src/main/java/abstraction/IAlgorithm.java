@@ -10,5 +10,5 @@ public interface IAlgorithm extends FieldTransformer
 {
     Values executeAlgorithm(Tuple tuple);
     void setInputSources(Map<String,  List<String>> inputFieldsFromSources);
-
+    void prepare();
 }

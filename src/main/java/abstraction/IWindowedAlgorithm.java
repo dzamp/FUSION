@@ -10,4 +10,5 @@ import java.util.Map;
 public interface IWindowedAlgorithm extends FieldTransformer{
     Values executeWindowedAlgorithm(TupleWindow tupleWindow);
      void setInputSources(Map<String,  List<String>> incomingStreamsFieldsMap);
+     void prepare();
 }

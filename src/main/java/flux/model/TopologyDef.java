@@ -42,25 +42,18 @@ import java.util.*;
 public class TopologyDef {
     private static Logger LOG = LoggerFactory.getLogger(TopologyDef.class);
 
-//    @JacksonXmlProperty(localName = "name")
     private String name;
-//    @JacksonXmlProperty(localName = "config")
     private Map<String,Object> configuration  =new HashMap<>();
-    // private Map<String, ?> config = new HashMap<String, Object>();
 
     private Map<String, BeanDef> componentMap = new LinkedHashMap<String, BeanDef>(); // not required
     private List<IncludeDef> includes; // not required
-    // a "topology source" is a class that can produce a `StormTopology` thrift object.
     private TopologySourceDef topologySource;
 
-    // the following are required if we're defining a core storm topology DAG in YAML, etc.
     private Map<String, BoltDef> boltMap = new LinkedHashMap<String, BoltDef>();
     private Map<String, SpoutDef> spoutMap = new LinkedHashMap<String, SpoutDef>();
     private Map<String, KafkaSpoutConfigDef> kafkaConfig = new LinkedHashMap<>();
-//    private Map<String , FusionKafkaConfig> kafkaConfig = new LinkedHashMap<>();
     private Map<String, MqttSpoutConfigDef> mqttConfig = new LinkedHashMap<>();
     private Map<String, FusionBoltDef> fusionBolts = new LinkedHashMap<>();
-//    @JacksonXmlProperty(localName = "streams")
     private List<StreamDef> streams = new ArrayList<StreamDef>();
 
 
@@ -232,6 +225,29 @@ public class TopologyDef {
             }
         }
     }
+
+    public void addAllMqttConfigs(List<MqttSpoutConfigDef> mqttSpoutConfigDefs, boolean override){
+        for(MqttSpoutConfigDef mqttCfg : mqttSpoutConfigDefs){
+            String id = mqttCfg.getId();
+            if(this.mqttConfig.get(id) == null || override) {
+                this.mqttConfig.put(mqttCfg.getId(), mqttCfg);
+            } else {
+                LOG.warn("Ignoring attempt to create mqttConfig '{}' with override == false.", id);
+            }
+        }
+    }
+
+    public void addAllKafkaConfigs(List<KafkaSpoutConfigDef> kafkaSpoutConfigDefs, boolean override){
+        for(KafkaSpoutConfigDef kafkaCfg : kafkaSpoutConfigDefs){
+            String id = kafkaCfg.getId();
+            if(this.kafkaConfig.get(id) == null || override) {
+                this.kafkaConfig.put(kafkaCfg.getId(), kafkaCfg);
+            } else {
+                LOG.warn("Ignoring attempt to create mqttConfig '{}' with override == false.", id);
+            }
+        }
+    }
+
 
     public void addAllSpouts(List<SpoutDef> spouts, boolean override){
         for(SpoutDef spout : spouts){

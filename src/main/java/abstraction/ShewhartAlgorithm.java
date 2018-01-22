@@ -102,6 +102,11 @@ public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
         this.inputFieldsFromSources = inputFieldsFromSources;
     }
 
+    @Override
+    public void prepare() {
+
+    }
+
 
     public ShewhartAlgorithm withKminus(int kminus) {
         this.kminus = kminus;

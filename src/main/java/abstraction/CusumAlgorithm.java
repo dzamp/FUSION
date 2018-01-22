@@ -92,6 +92,11 @@ public class CusumAlgorithm implements IAlgorithm, Serializable{
 
     }
 
+    @Override
+    public void prepare() {
+
+    }
+
 //    @Override
 //    public void setInputSources(Map<String, Map<String, List<String>>> inputFieldsFromSources) {
 //        this.inputFieldsFromSources = inputFieldsFromSources;

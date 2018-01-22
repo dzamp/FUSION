@@ -4,46 +4,44 @@ config:
 #  topology.debug: true
 
 
-components:
-  - id: "merger"
-    className: "abstraction.StreamMerger"
 
-  - id : "count"
-    className: "org.apache.storm.topology.base.BaseWindowedBolt$Count"
-    constructorArgs:
-      - 100
+includes:
+  - resource: false
+    file: "src/test/resources/merger/components.yaml"
+    override: true
 
 
-mqttconfig:
-  - id: "mqtt-config"
-    className: "flux.model.extended.MqttSpoutConfigDef"
-    brokerUrl: "tcp://localhost:1883"
-    topic: "health_monitor/blood_pressure"
-    clientId: "hello"
-    regex: ","
-    fields:
-      - "id"
-      - "value"
-      - "timestamp"
-    classes:
-      - "java.lang.String"
-      - "java.lang.Double"
-      - "java.lang.Long"
 
-  - id: "mqtt-config2"
-    className: "flux.model.extended.MqttSpoutConfigDef"
-    brokerUrl: "tcp://localhost:1883"
-    topic: "health_monitor/temperature"
-    clientId: "hello"
-    regex: ","
-    fields:
-      - "id"
-      - "value"
-      - "timestamp"
-    classes:
-      - "java.lang.String"
-      - "java.lang.Double"
-      - "java.lang.Long"
+#mqttconfig:
+#  - id: "mqtt-config"
+#    className: "flux.model.extended.MqttSpoutConfigDef"
+#    brokerUrl: "tcp://localhost:1883"
+#    topic: "health_monitor/blood_pressure"
+#    clientId: "hello"
+#    regex: ","
+#    fields:
+#      - "id"
+#      - "value"
+#      - "timestamp"
+#    classes:
+#      - "java.lang.String"
+#      - "java.lang.Double"
+#      - "java.lang.Long"
+#
+#  - id: "mqtt-config2"
+#    className: "flux.model.extended.MqttSpoutConfigDef"
+#    brokerUrl: "tcp://localhost:1883"
+#    topic: "health_monitor/temperature"
+#    clientId: "hello"
+#    regex: ","
+#    fields:
+#      - "id"
+#      - "value"
+#      - "timestamp"
+#    classes:
+#      - "java.lang.String"
+#      - "java.lang.Double"
+#      - "java.lang.Long"
 
 
 
@@ -60,7 +58,7 @@ spouts:
 
 
 
-# bolt definitions
+ bolt definitions
 fusionbolts:
   - id: "merger-bolt"
     className: "abstraction.GenericWindowedBolt"

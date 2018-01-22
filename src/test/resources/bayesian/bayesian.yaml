@@ -1,15 +1,39 @@
 name: "mqtt-topology-direct"
 config:
   topology.workers: 1
-#  topology.debug: true
+  topology.debug: true
 
+components:
+  - id: "bayes"
+    className: "abstraction.BayesianNetwork"
+    configMethods:
+      - name: "addNodeWithOutcomes"
+        args:
+          - "temperature"
+          - ["low","medium","high"]
 
-includes:
-  - resource: false
-    file: "src/test/resources/merger/components.yaml"
-    override: true
+      - name: "setProbabilities"
+        args:
+          - "temperature"
+          - "0.2,0.4,0.4"
+      - name: "withInference"
+        args:
+          - "temperature"
+          - ""
 
+  - id: "merger"
+    className: "abstraction.StreamMerger"
 
+  - id: "count"
+    className: "org.apache.storm.topology.base.BaseWindowedBolt$Count"
+    constructorArgs:
+      - 100
+
+  - id: "duration"
+    className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
+    constructorArgs:
+      - 10
+      - SECONDS
 
 
 mqttconfig:
@@ -43,8 +67,16 @@ mqttconfig:
       - "java.lang.Double"
       - "java.lang.Long"
 
+spouts:
+  - id: "blood-spout"
+    className: "consumers.MqttConsumerSpout"
+    constructorArgs:
+      - ref: "mqtt-config"
 
-
+  - id: "temp-spout"
+    className: "consumers.MqttConsumerSpout"
+    constructorArgs:
+      - ref: "mqtt-config2"
 
 # bolt definitions
 fusionbolts:
@@ -57,6 +89,12 @@ fusionbolts:
         args: [ref: "duration"]
       - name: "withTimestampField"
         args: ["timestamp"]
+
+  - id: "bayesian-bolt"
+    className: "abstraction.GenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ref : "bayes"]
 
 
 
@@ -76,7 +114,11 @@ streams:
       type: SHUFFLE
 
 
-
+  - name: "merger-bolt --> bayesian-bolt"
+    from: "merger-bolt"
+    to: "bayesian-bolt"
+    grouping:
+      type: SHUFFLE
 
 
 

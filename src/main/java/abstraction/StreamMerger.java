@@ -36,6 +36,10 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
         this.inputFieldsFromSources = inputFieldsFromSources;
     }
 
+    @Override
+    public void prepare() {
+
+    }
 
 
     @Override
@@ -70,6 +74,7 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
 
     @Override
     public String[] transformFields(String[] incomingFields) {
+        //todo here is the stuff!!!!!
         return new String[0];
     }
 }

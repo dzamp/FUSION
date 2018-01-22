@@ -17,10 +17,7 @@
  */
 package flux;
 
-import abstraction.FusionBolt;
-import consumers.FusionIRichSpout;
 import flux.model.*;
-import flux.model.extended.FusionBoltDef;
 import flux.model.extended.KafkaSpoutConfigDef;
 import flux.model.extended.MqttSpoutConfigDef;
 import org.apache.storm.Config;
@@ -34,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.*;
 import java.util.*;
+
+import static flux.model.extended.FluxBuilderExtra.buildStreamDeclarers;
 
 public class FluxBuilder {
     private static Logger LOG = LoggerFactory.getLogger(FluxBuilder.class);
@@ -104,6 +103,8 @@ public class FluxBuilder {
         return topology;
     }
 
+
+
     private static void buildSpoutConfigs(ExecutionContext context) {
         if (context.getTopologyDef().getKafkaconfig() != null && context.getTopologyDef().getKafkaconfig().size() > 0) {
             for (KafkaSpoutConfigDef def : context.getTopologyDef().getKafkaconfig())
@@ -115,14 +116,15 @@ public class FluxBuilder {
         }
     }
 
+
     /**
      * Given a `java.lang.Object` instance and a method name, attempt to find a method that matches the input
      * parameter: `java.util.Map` or `org.apache.storm.Config`.
      *
      * @param topologySource object to inspect for the specified method
      * @param methodName     name of the method to look for
-     * @return
-     * @throws NoSuchMethodException
+     * @return a Method object that returns a storm topology
+     * @throws NoSuchMethodException if no such method exists
      */
     private static Method findGetTopologyMethod(Object topologySource, String methodName) throws NoSuchMethodException {
         Class clazz = topologySource.getClass();
@@ -154,8 +156,9 @@ public class FluxBuilder {
     }
 
     /**
-     * @param context
-     * @param builder
+     * Builds stream definitions.
+     * @param context context
+     * @param builder builder
      */
     private static void buildStreamDefinitions(ExecutionContext context, TopologyBuilder builder)
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException,
@@ -198,8 +201,8 @@ public class FluxBuilder {
                     declarers.put(stream.getTo(), declarer);
                 }
             } else {
-                throw new IllegalArgumentException("Class does not appear to be a bolt: " +
-                        boltObj.getClass().getName());
+                throw new IllegalArgumentException("Class does not appear to be a bolt: "
+                        + boltObj.getClass().getName());
             }
 
             BoltDef boltDef = topologyDef.getBoltDef(stream.getTo());
@@ -227,7 +230,7 @@ public class FluxBuilder {
                     declarer.shuffleGrouping(stream.getFrom(), streamId);
                     break;
                 case FIELDS:
-                    //-TODO check for null grouping args
+                    //TODO check for null grouping args
                     declarer.fieldsGrouping(stream.getFrom(), streamId, new Fields(grouping.getArgs()));
                     break;
                 case ALL:
@@ -303,11 +306,11 @@ public class FluxBuilder {
 
     private static List<Object> resolveReferences(List<Object> args, ExecutionContext context) {
         LOG.debug("Checking arguments for references.");
-        List<Object> cArgs = new ArrayList<Object>();
+        List<Object> constructorArgs = new ArrayList<Object>();
         // resolve references
         for (Object arg : args) {
             if (arg instanceof BeanReference) {
-                cArgs.add(context.getComponent(((BeanReference) arg).getId()));
+                constructorArgs.add(context.getComponent(((BeanReference) arg).getId()));
             } else if (arg instanceof BeanListReference) {
                 List<Object> components = new ArrayList<>();
                 BeanListReference ref = (BeanListReference) arg;
@@ -316,42 +319,56 @@ public class FluxBuilder {
                 }
 
                 LOG.debug("BeanListReference resolved as {}", components);
-                cArgs.add(components);
+                constructorArgs.add(components);
             } else {
-                cArgs.add(arg);
+                constructorArgs.add(arg);
             }
         }
-        return cArgs;
+        return constructorArgs;
     }
 
-    public static Object buildObject(ObjectDef def, ExecutionContext context) throws ClassNotFoundException,
+    private static Object buildObject(ObjectDef def, ExecutionContext context) throws ClassNotFoundException,
             IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
         Class clazz = Class.forName(def.getClassName());
-
         Object obj = null;
-        if (!clazz.isEnum()) {
-            if (def.hasConstructorArgs()) {
-                LOG.debug("Found constructor arguments in definition: " + def.getConstructorArgs().getClass().getName());
-                List<Object> cArgs = def.getConstructorArgs();
-                if (def.hasReferences()) {
-                    cArgs = resolveReferences(cArgs, context);
-                }
-                Constructor con = findCompatibleConstructor(cArgs, clazz);
-                if (con != null) {
-                    LOG.debug("Found something seemingly compatible, attempting invocation...");
-                    obj = con.newInstance(getArgsWithListCoercian(cArgs, con.getParameterTypes()));
-                } else {
-                    String msg = String.format("Couldn't find a suitable constructor for class '%s' with arguments '%s'.",
-                            clazz.getName(),
-                            cArgs);
-                    throw new IllegalArgumentException(msg);
-                }
-            } else {
-                obj = clazz.newInstance();
+        if (def.hasConstructorArgs()) {
+            LOG.debug("Found constructor arguments in definition: " + def.getConstructorArgs().getClass().getName());
+            List<Object> constructorArgs = def.getConstructorArgs();
+            if (def.hasReferences()) {
+                constructorArgs = resolveReferences(constructorArgs, context);
             }
-        }
-        else {
+            Constructor con = findCompatibleConstructor(constructorArgs, clazz);
+            if (con != null) {
+                LOG.debug("Found something seemingly compatible, attempting invocation...");
+                obj = con.newInstance(getArgsWithListCoercian(constructorArgs, con.getParameterTypes()));
+            } else {
+                String msg = String.format("Couldn't find a suitable constructor for class '%s' with arguments '%s'.",
+                        clazz.getName(),
+                        constructorArgs);
+                throw new IllegalArgumentException(msg);
+            }
+        } else if (def.hasFactory()) {
+            Method method = null;
+            List<Object> methodArgs = new ArrayList<>(); // empty if no factoryArgs
+            if (def.hasFactoryArgs()) {
+                methodArgs = def.getFactoryArgs();
+                if (def.hasReferences()) {
+                    methodArgs = resolveReferences(methodArgs, context);
+                }
+            }
+            method = findCompatibleMethod(methodArgs, clazz, def.getFactory());
+            if (method != null) {
+                obj = method.invoke(null, getArgsWithListCoercian(methodArgs, method.getParameterTypes()));
+            } else {
+                String msg = String.format("Couldn't find a suitable static method '%s' for class '%s' with arguments '%s'.",
+                        def.getFactory(),
+                        clazz.getName(),
+                        methodArgs);
+                throw new IllegalArgumentException(msg);
+            }
 
+        } else {
+            obj = clazz.newInstance();
         }
         applyProperties(def, obj, context);
         invokeConfigMethods(def, obj, context);
@@ -388,9 +405,9 @@ public class FluxBuilder {
      */
     private static void buildComponents(ExecutionContext context) throws ClassNotFoundException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchFieldException {
-        Collection<BeanDef> cDefs = context.getTopologyDef().getComponents();
-        if (cDefs != null) {
-            for (BeanDef bean : cDefs) {
+        Collection<BeanDef> beanDefs = context.getTopologyDef().getComponents();
+        if (beanDefs != null) {
+            for (BeanDef bean : beanDefs) {
                 Object obj = buildObject(bean, context);
                 context.addComponent(bean.getId(), obj);
             }
@@ -400,7 +417,6 @@ public class FluxBuilder {
 
     private static void buildSpouts(ExecutionContext context, TopologyBuilder builder) throws ClassNotFoundException,
             NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException {
-
         for (SpoutDef sd : context.getTopologyDef().getSpouts()) {
             IRichSpout spout = buildSpout(sd, context);
             SpoutDeclarer declarer = builder.setSpout(sd.getId(), spout, sd.getParallelism());
@@ -420,7 +436,6 @@ public class FluxBuilder {
             }
 
             context.addSpout(sd.getId(), spout);
-
         }
     }
 
@@ -430,9 +445,7 @@ public class FluxBuilder {
      */
     private static IRichSpout buildSpout(SpoutDef def, ExecutionContext context) throws ClassNotFoundException,
             IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
-        IRichSpout spout = (IRichSpout) buildObject(def, context);
-        spout = spout instanceof FusionIRichSpout ? ((FusionIRichSpout) spout) : (IRichSpout) spout;
-        return spout;
+        return (IRichSpout) buildObject(def, context);
     }
 
     /**
@@ -480,6 +493,14 @@ public class FluxBuilder {
     }
 
 
+    /**
+     * Invokes configuration methods on an class instance.
+     * @param bean the bean/component definition
+     * @param instance the class instance being operated on
+     * @param context execution context
+     * @throws InvocationTargetException if method invocation fails
+     * @throws IllegalAccessException if security policy prefents invocation
+     */
     public static void invokeConfigMethods(ObjectDef bean, Object instance, ExecutionContext context)
             throws InvocationTargetException, IllegalAccessException {
 
@@ -537,8 +558,8 @@ public class FluxBuilder {
             }
         }
         if (eligibleCount > 1) {
-            LOG.warn("Found multiple invokable methods for class {}, method {}, given arguments {}. " +
-                            "Using the last one found.",
+            LOG.warn("Found multiple invokable methods for class {}, method {}, given arguments {}. "
+                            + "Using the last one found.",
                     new Object[]{target, methodName, args});
         }
         return retval;
@@ -550,7 +571,6 @@ public class FluxBuilder {
      * to be coerced from a List to an Array, do so.
      */
     private static Object[] getArgsWithListCoercian(List<Object> args, Class[] parameterTypes) {
-//        Class[] parameterTypes = constructor.getParameterTypes();
         if (parameterTypes.length != args.size()) {
             throw new IllegalArgumentException("Contructor parameter count does not egual argument size.");
         }
@@ -580,20 +600,21 @@ public class FluxBuilder {
                 constructorParams[i] = bool.booleanValue();
                 continue;
             }
-            if (isPrimitiveNumber(paramType) && Number.class.isAssignableFrom(objectType)) {
-                LOG.debug("Its a primitive number.");
+            if ((isPrimitiveNumber(paramType) || Number.class.isAssignableFrom(paramType))
+                    && Number.class.isAssignableFrom(objectType)) {
+                LOG.debug("Its a number.");
                 Number num = (Number) args.get(i);
-                if (paramType == Float.TYPE) {
+                if (paramType == Float.TYPE || paramType == Float.class) {
                     constructorParams[i] = num.floatValue();
-                } else if (paramType == Double.TYPE) {
+                } else if (paramType == Double.TYPE || paramType == Double.class) {
                     constructorParams[i] = num.doubleValue();
-                } else if (paramType == Long.TYPE) {
+                } else if (paramType == Long.TYPE || paramType == Long.class) {
                     constructorParams[i] = num.longValue();
-                } else if (paramType == Integer.TYPE) {
+                } else if (paramType == Integer.TYPE || paramType == Integer.class) {
                     constructorParams[i] = num.intValue();
-                } else if (paramType == Short.TYPE) {
+                } else if (paramType == Short.TYPE || paramType == Short.class) {
                     constructorParams[i] = num.shortValue();
-                } else if (paramType == Byte.TYPE) {
+                } else if (paramType == Byte.TYPE || paramType == Byte.class) {
                     constructorParams[i] = num.byteValue();
                 } else {
                     constructorParams[i] = args.get(i);
@@ -630,103 +651,12 @@ public class FluxBuilder {
 
 
     /**
-     * Attempt to assign fields to any bolt starting from the spouts that they subscribe tp
-     */
-    //TODO my attempt
-    public static void buildStreamDeclarers(ExecutionContext context, TopologyBuilder builder) {
-        List<StreamDef> streamDefs = context.getTopologyDef().getStreams();
-        List<SpoutDef> spoutDefs = context.getTopologyDef().getSpouts();
-        //start from spouts and give the topology fields
-        //if we have usual spouts or mqttSpouts we have to find the fields that are being sent
-        for (SpoutDef spoutDef : spoutDefs) {
-            IRichSpout spout = context.getSpout(spoutDef.getId());
-            if (spout instanceof FusionIRichSpout) {
-                for (StreamDef streamDef : streamDefs) {
-                    String streamId = null;
-                    if (streamDef.getFrom().equals(spoutDef.getId())) {
-                        if (streamDef.getGrouping().getStreamId() != null) {
-                            streamId = streamDef.getGrouping().getStreamId();
-                            addStreamToVertex(context, spoutDef, streamId);
-                        }
-                        BoltDef boltdef = context.getTopologyDef().getBoltDef(streamDef
-                                .getTo());
-                        if (boltdef instanceof FusionBoltDef) {
-                            FusionBoltDef fusionBoltDef = context.getTopologyDef()
-                                    .getFusionBoltDef(streamDef.getTo());
-                            findConnectingBoltsDFS(fusionBoltDef, streamDefs, context, ((FusionIRichSpout) spout).getFieldNames());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * This algorithm performs a DFS starting from a connected spout with a bolt and searches subsequent connections of this bolt with other bolts
-     * setting their fields from the previous connected bolt plus any extra fields specified by the contained algorithm. This is a recursive method
-     *
-     * @param fusionBoltDefFrom
-     * @param streamDefs
-     * @param context
-     * @param fields
-     */
-    public static void findConnectingBoltsDFS(FusionBoltDef fusionBoltDefFrom, List<StreamDef> streamDefs, ExecutionContext context, String[] fields) {
-        FusionBolt from = (FusionBolt) context.getBolt(fusionBoltDefFrom.getId());
-
-        boolean isTerminal = true;
-        for (StreamDef streamDef : streamDefs) {
-            String streamId = null;
-            if (streamDef.getFrom().equals(fusionBoltDefFrom.getId())) {
-                isTerminal = false;
-                if (streamDef.getGrouping().getStreamId() != null) {
-                    streamId = streamDef.getGrouping().getStreamId();
-                    addStreamToVertex(context, fusionBoltDefFrom, streamId);
-                }
-                fusionBoltDefFrom.setFields(fields);
-                from.setFields(false, fields);
-                BoltDef boltDefTo = context.getTopologyDef().getBoltDef(streamDef.getTo());
-                if (boltDefTo instanceof FusionBoltDef) {
-                    FusionBoltDef fusionBoltDefTo = (FusionBoltDef) boltDefTo;
-                    findConnectingBoltsDFS(fusionBoltDefTo, streamDefs, context, from.getOutgoingFields());
-                }
-            }
-        }
-        if (isTerminal) {
-            //if node is terminal then we have to explicity invoke setFields with true parameter, in order to avoid building the outcoming fields
-            ((FusionBolt) context.getBolt(fusionBoltDefFrom.getId())).setFields(true, fields);
-        }
-    }
-
-    /**
-     * Adds a StreamId to a vertexDef, a component that is either a Fusionbolt or a mqttSpout
-     *
-     * @param context
-     * @param vertex
-     * @param streamId
-     */
-    private static void addStreamToVertex(ExecutionContext context, VertexDef vertex, String streamId) {
-
-        if (vertex instanceof SpoutDef) {
-            ((FusionIRichSpout) context.getSpout(vertex.getId()))
-                    .addOutgoingStreamName(streamId);
-        }
-        if (vertex instanceof FusionBoltDef) {
-            if (context.getBolt(vertex.getId()) instanceof FusionBolt) {
-                ((FusionBolt) context.getBolt(vertex.getId())).addOutgoingStreamName(streamId);
-            }
-
-        }
-
-    }
-
-
-    /**
      * Determine if the given constructor/method parameter types are compatible given arguments List. Consider if
      * list coercian can make it possible.
      *
-     * @param args
-     * @param parameterTypes
-     * @return
+     * @param args arguments
+     * @param parameterTypes parameter types
+     * @return true if parameter types and args are compatible
      */
     private static boolean canInvokeWithArgs(List<Object> args, Class[] parameterTypes) {
         if (parameterTypes.length != args.size()) {
@@ -749,7 +679,8 @@ public class FluxBuilder {
                 LOG.debug("Yes, assignment is possible.");
             } else if (isPrimitiveBoolean(paramType) && Boolean.class.isAssignableFrom(objectType)) {
                 LOG.debug("Yes, assignment is possible.");
-            } else if (isPrimitiveNumber(paramType) && Number.class.isAssignableFrom(objectType)) {
+            } else if (isPrimitiveNumber(paramType) || Number.class.isAssignableFrom(paramType)
+                    && Number.class.isAssignableFrom(objectType)) {
                 LOG.debug("Yes, assignment is possible.");
             } else if (paramType.isEnum() && objectType.equals(String.class)) {
                 LOG.debug("Yes, will convert a String to enum");
