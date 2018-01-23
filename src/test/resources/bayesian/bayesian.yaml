@@ -1,8 +1,8 @@
 name: "mqtt-topology-direct"
 config:
   topology.workers: 1
-  topology.debug: true
-
+#  topology.debug: true
+  topology.message.timeout.secs: 120
 components:
   - id: "bayes"
     className: "abstraction.BayesianNetwork"
@@ -11,15 +11,34 @@ components:
         args:
           - "temperature"
           - ["low","medium","high"]
-
       - name: "setProbabilities"
         args:
           - "temperature"
           - "0.2,0.4,0.4"
+      - name: "addNodeWithOutcomes"
+        args:
+          - "blood_pressure"
+          - ["low","medium","high"]
+      - name: "setProbabilities"
+        args:
+          - "blood_pressure"
+          - "0.1,0.4,0.5"
+      - name: "addNodeWithOutcomes"
+        args:
+          - "heart_attack"
+          - ["low","high"]
+      - name: "addParentsToNode"
+        args:
+          - "heart_attack"
+          - ["temperature","blood_pressure"]
+      - name: "setProbabilities"
+        args:
+          - "heart_attack"
+          - "0.2,0.8,0.3,0.7,0.5,0.5,0.1,0.9,0.3,0.7,0.3,0.7,0.1,0.9,0.2,0.8,0.2,0.8,"
       - name: "withInference"
         args:
-          - "temperature"
-          - ""
+          - "heart_attack"
+          - JUNCTION_TREE
 
   - id: "merger"
     className: "abstraction.StreamMerger"
@@ -32,15 +51,17 @@ components:
   - id: "duration"
     className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
     constructorArgs:
-      - 10
+      - 60
       - SECONDS
 
+  - id: "mockClassifier"
+    className: "abstraction.SimpleAverageClassifier"
 
 mqttconfig:
   - id: "mqtt-config"
     className: "flux.model.extended.MqttSpoutConfigDef"
     brokerUrl: "tcp://localhost:1883"
-    topic: "health_monitor/blood_pressure"
+    topic: "blood_pressure"
     clientId: "hello"
     regex: ","
     fields:
@@ -55,7 +76,7 @@ mqttconfig:
   - id: "mqtt-config2"
     className: "flux.model.extended.MqttSpoutConfigDef"
     brokerUrl: "tcp://localhost:1883"
-    topic: "health_monitor/temperature"
+    topic: "temperature"
     clientId: "hello"
     regex: ","
     fields:
@@ -96,6 +117,11 @@ fusionbolts:
       - name: "withAlgorithm"
         args: [ref : "bayes"]
 
+  - id: "mockClassifier-bolt"
+    className: "abstraction.GenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ref : "mockClassifier"]
 
 
 #stream definitions
@@ -114,12 +140,16 @@ streams:
       type: SHUFFLE
 
 
-  - name: "merger-bolt --> bayesian-bolt"
+  - name: "merger-bolt --> mockClassifier-bolt"
     from: "merger-bolt"
-    to: "bayesian-bolt"
+    to: "mockClassifier-bolt"
     grouping:
       type: SHUFFLE
 
-
+  - name: "mockClassifier-bolt --> bayesian-bolt"
+    from: "mockClassifier-bolt"
+    to: "bayesian-bolt"
+    grouping:
+      type: SHUFFLE
 
 

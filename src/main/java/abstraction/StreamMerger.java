@@ -75,6 +75,7 @@ public class StreamMerger implements IWindowedAlgorithm, Serializable {
     @Override
     public String[] transformFields(String[] incomingFields) {
         //todo here is the stuff!!!!!
-        return new String[0];
+        //do not use any of the incoming fields
+        return new String[]{"mergedStreams", "metadata"};
     }
 }

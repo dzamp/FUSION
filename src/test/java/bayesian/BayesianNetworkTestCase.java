@@ -34,25 +34,17 @@ public class BayesianNetworkTestCase {
                                     "0.1,0.9," +  //p(fire|temp = low,hum=high), p(not-fire|temp = low,hum=high)
                                     "0.2,0.8," +    //p(fire|temp = low,hum=medium), p(not-fire|temp = low,hum=medium)
                                     "0.2,0.8,"     //p(fire|temp = low,hum=low), p(not-fire|temp = low,hum=low))
-                    ).withInference("fire", "").build();
+                    ).withInference("fire", BayesianNetwork.BayesianInferrenceAlgorithm.JUNCTION_TREE).build();
         } catch (AlgorithmDeclarationException e) {
             e.printStackTrace();
         }
 //            bayesianNetwork.build()
         Tuple tuple = mock(Tuple.class, RETURNS_DEEP_STUBS);
-        when(tuple.getValues().get(0)).thenAnswer(invocationOnMock -> {
-            Map<String, List<Values>> streamValues = new HashMap<String, List<Values>>();
-            streamValues.put("temperature-spout", new ArrayList<>());
-            streamValues.put("humidity-spout", new ArrayList<>());
-            for (int i = 0; i < 20; i++) {
-                if (i % 2 == 0)
-                    streamValues.get("temperature-spout")
-                            .add(new Values("T" + UUID.randomUUID(), Math.random() * 10 + 30, System.currentTimeMillis()));
-                else streamValues.get("humidity-spout")
-                        .add(new Values("T" + UUID.randomUUID(), Math.random() * 10 + 10, System.currentTimeMillis()));
-            }
-            return streamValues;
-
+        when(tuple.getValue(0)).thenAnswer(invocationOnMock -> {
+            Map<String, String> classification= new HashMap<String, String>();
+            classification.put("humidity","high");
+            classification.put("temperature", "low");
+            return classification;
         });
 
 
