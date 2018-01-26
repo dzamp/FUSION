@@ -12,7 +12,7 @@ import java.util.Map;
 public class ShewhartAlgorithm implements IWindowedAlgorithm, Serializable{
 
     protected ShewhartState previousState;
-    //position on which the shewhard algorithm will be applied
+    //positionInStream on which the shewhard algorithm will be applied
     protected int positionInStream = 0;
     protected String fieldInStream = "";
     protected double kplus = 3;

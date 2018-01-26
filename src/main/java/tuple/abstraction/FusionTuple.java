@@ -1,0 +1,147 @@
+package tuple.abstraction;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.storm.tuple.Values;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class FusionTuple {
+    //wrapper class for tuple.
+    // this map will contain all values for alla streams, of any kind, by its component name(spout/bolt) or
+    // of the incoming stream
+    Map<String, List<Values>> valueMap;
+
+
+    //Metadata Map that contains info about the incoming tuples and its classes,
+    //Not that this will contain information from multiple sources
+    Map<String, List<Meta>> metaMap;
+
+
+    public FusionTuple(){
+        valueMap = new HashMap<>();
+        metaMap = new HashMap<>();
+    }
+
+    public void addValuestoStream(String streamId, List<Values> vals){
+        valueMap.put(streamId,vals);
+    }
+
+
+
+    public List<Values> getStreamValues(String id) {
+        if (valueMap.containsKey(id)) return valueMap.get(id);
+        return null;
+    }
+
+
+    public Meta getFieldMetadataByName(String streamId, String fieldName) {
+        if (metaMap.containsKey(streamId)) {
+            if (metaMap.get(streamId) != null && metaMap.get(streamId).size() != 0) {
+                for(Meta pair: metaMap.get(streamId)){
+                    if(pair.getFieldName().equals(fieldName))
+                        return pair;
+                }
+            }
+        }
+        return null;
+    }
+
+    public int getPositionOfFieldInStream(String streamId, String fieldName) {
+        if (metaMap.containsKey(streamId)) {
+            if (metaMap.get(streamId) != null && metaMap.get(streamId).size() != 0) {
+                for(Meta pair: metaMap.get(streamId)){
+                    if(pair.getFieldName().equals(fieldName))
+                        return pair.getPosition();
+                }
+            }
+        }
+        return -1;
+    }
+
+    public String getClassOfFieldInStream(String streamId, String fieldName) {
+        if (metaMap.containsKey(streamId)) {
+            if (metaMap.get(streamId) != null && metaMap.get(streamId).size() != 0) {
+                for(Meta pair: metaMap.get(streamId)){
+                    if(pair.getFieldName().equals(fieldName))
+                        return pair.getClassName();
+                }
+            }
+        }
+        return null;
+    }
+
+
+
+
+    public void setStreamMetadata(String streamId, List<Meta> metaList){
+        this.metaMap.put(streamId, metaList);
+    }
+
+    public List<Meta> getStreamMetadata(String streamId){
+            return metaMap.get(streamId);
+    }
+
+
+
+   public void addNewValuesRowTostreamValues(String streamId, Values values, Meta meta){
+        this.valueMap.get(streamId).add(values);
+        if(!this.metaMap.get(streamId).contains(meta))
+            if(meta!=null) this.metaMap.get(streamId).add(meta);
+   }
+
+   public List<String> getFieldNamesOfStream(String streamId) {
+       List<Meta> metadata  = this.metaMap.get(streamId);
+       List<String> fieldNames = new ArrayList<>();
+       if(metadata!=null) {
+           metadata.forEach(meta -> fieldNames.add(meta.getFieldName()));
+       }
+       return fieldNames;
+   }
+
+
+
+   public void addMetadataToStream(String streamId, Meta meta){
+       int pos = this.metaMap.get(streamId).size();
+       meta.setPosition(pos);
+       this.metaMap.get(streamId).add(meta);
+   }
+
+   public void removeFieldAndMetadataFromStream(String streamId, String fieldName){
+       int positionOfField = this.getPositionOfFieldInStream(streamId,fieldName);
+       this.valueMap.get(streamId).forEach(valuesTuple -> valuesTuple.remove(positionOfField));
+       List<Meta> metaList = getStreamMetadata(streamId);
+        metaList.remove(positionOfField);
+       for(int i=0; i< metaList.size(); i++){
+           //update internal position referrences
+           metaList.get(i).setPosition(i);
+       }
+   }
+
+    @Override
+    public String toString() {
+       StringBuilder builder = new StringBuilder();
+       for(String stream : valueMap.keySet()) {
+           builder.append(stream + " --> ");
+           for (Values values : valueMap.get(stream)) {
+               builder.append("[ ");
+               for (Object obj : values)
+                   builder.append(" ").append(obj.toString()).append(",");
+               builder.append(" ] \n");
+           }
+           builder.append(" \n");
+       }
+
+        for(String stream : metaMap.keySet()) {
+            builder.append(stream + " --> ");
+            for (Meta meta : metaMap.get(stream)) {
+                builder.append(meta.toString());
+            }
+            builder.append(" \n");
+        }
+        return builder.toString();
+    }
+}

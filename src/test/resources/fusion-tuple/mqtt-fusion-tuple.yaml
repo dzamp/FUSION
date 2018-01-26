@@ -1,0 +1,152 @@
+name: "mqtt-topology-direct"
+config:
+  topology.workers: 1
+#  topology.debug: true
+
+
+components:
+  - id: "cusumAlgorithm"
+    className: "tuple.abstraction.Fcusum"
+    constructorArgs:
+      - 80.0
+      - 20.0
+      - 40.0
+    configMethods:
+      - name: "withPositionInStream"
+        args: [1]
+      - name: "withLowerBound"
+
+  - id: "shewhartAlgorithm"
+    className: "tuple.abstraction.FShewhart"
+    constructorArgs:
+      - 50.0
+      - 10.0
+    configMethods:
+      - name: "withPositionInStream"
+        args: [1]
+
+  - id: "count"
+    className: "tuple.abstraction.FObjectCount"
+
+mqttconfig:
+  - id: "mqtt-config"
+    className: "flux.model.extended.MqttSpoutConfigDef"
+    brokerUrl: "tcp://localhost:1883"
+    topic: "health_monitor/blood_pressure"
+    clientId: "hello"
+    regex: ","
+    fields:
+      - "id"
+      - "value"
+      - "timestamp"
+    classes:
+      - "java.lang.String"
+      - "java.lang.Double"
+      - "java.lang.Long"
+
+#  - id: "mqtt-config2"
+#    className: "flux.model.extended.MqttSpoutConfigDef"
+#    brokerUrl: "tcp://localhost:1883"
+#    topic: "health_monitor/temperature"
+#    clientId: "hello"
+#    regex: ","
+#    fields:
+#      - "id"
+#      - "value"
+#      - "timestamp"
+#    classes:
+#      - "java.lang.String"
+#      - "java.lang.Double"
+#      - "java.lang.Long"
+
+spouts:
+  - id: "blood-spout"
+    className: "tuple.abstraction.FMqttConsumer"
+    constructorArgs:
+      - ref: "mqtt-config"
+
+
+
+# bolt definitions
+fusionbolts:
+  - id: "cusum-bolt"
+    className: "tuple.abstraction.FGenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "cusumAlgorithm"]
+
+  - id: "shewhart-bolt"
+    className: "tuple.abstraction.FGenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "shewhartAlgorithm"]
+
+  - id: "count"
+    className: "tuple.abstraction.FGenericBolt"
+    configMethods:
+      - name: "withAlgorithm"
+        args: [ ref : "count"]
+
+
+
+
+
+
+#stream definitions
+streams:
+  - name: "blood-spout --> cusum-bolt" # name isn't used (placeholder for logging, UI, etc.)
+    from: "blood-spout"
+    to: "cusum-bolt"
+    grouping:
+      streamId: "stream1"
+      type: SHUFFLE
+
+
+  - name: "blood-spout --> shewhart-bolt" # name isn't used (placeholder for logging, UI, etc.)
+    from: "blood-spout"
+    to: "shewhart-bolt"
+    grouping:
+      streamId: "stream2"
+      type: SHUFFLE
+
+  - name: "cusum-bolt --> count"
+    from: "cusum-bolt"
+    to: "count"
+    grouping:
+      streamId: "stream3"
+      type: SHUFFLE
+#
+#  - name: "cusum-bolt2 --> count"
+#    from: "cusum-bolt2"
+#    to: "count"
+#    grouping:
+##      streamId: "stream1"
+#      type: SHUFFLE
+
+#  - name: "temp-spout --> cusum-bolt" # name isn't used (placeholder for logging, UI, etc.)
+#    from: "temp-spout"
+#    to: "cusum-bolt"
+#    grouping:
+#      streamId: "stream213"
+#      type: SHUFFLE
+
+#  - name: "blood-spout --> bolt-2" # name isn't used (placeholder for logging, UI, etc.)
+#    from: "blood-spout"
+#    to: "bolt-2"
+#    grouping:
+#      streamId: "stream2"
+#      type: FIELDS
+#      args: ["id"]
+#
+#  - name: "cusum-bolt --> counter-bolt" # name isn't used (placeholder for logging, UI, etc.)
+#    from: "cusum-bolt"
+#    to: "counter-bolt"
+#    grouping:
+#      streamId: "stream3"
+#      type: SHUFFLE
+
+
+
+
+
+

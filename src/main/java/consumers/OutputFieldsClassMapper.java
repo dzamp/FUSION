@@ -12,6 +12,11 @@ public class OutputFieldsClassMapper implements Serializable {
     protected List<ClassConverter<?>> converters = null;
     protected List<Class> classes = null;
     protected String regex = null;
+    protected String[] classNames;
+
+    public String getClassname(int index){
+        return classNames[index];
+    }
 
     //    protected Logger log;
     public OutputFieldsClassMapper(String... classNames) {
@@ -29,6 +34,7 @@ public class OutputFieldsClassMapper implements Serializable {
     }
 
     public OutputFieldsClassMapper withClasses(String... classNames) {
+        this.classNames = classNames;
         setClasses(classNames);
         resolveClassConverters(classNames);
         return this;

@@ -34,16 +34,16 @@ import java.util.concurrent.BlockingQueue;
 public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
 
 
-    private final MqttConfig config;
+    protected final MqttConfig config;
     protected BlockingQueue<Pair<String, MqttMessage>> messageQueue;
     protected Map<String, List<String>> outcomingStreamsFieldsMap;
     protected SpoutOutputCollector collector;
     protected TopologyContext ctx;
     protected Logger log;
     protected MqttClient client;
-    private boolean outgoingFieldsSet = false;
-    private Map configMap = null;
-    private int count = 0;
+    protected boolean outgoingFieldsSet = false;
+    protected Map configMap = null;
+    protected int count = 0;
 
     public MqttConsumerSpout(MqttSpoutConfigDef def) {
         this.config = def.createMqttConfig();

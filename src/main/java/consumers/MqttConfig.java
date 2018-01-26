@@ -89,4 +89,9 @@ public class MqttConfig implements Serializable {
         if (!this.streamIds.contains(streamId))
             this.streamIds.add(streamId);
     }
+
+
+    public OutputFieldsClassMapper getMapper() {
+        return mapper;
+    }
 }

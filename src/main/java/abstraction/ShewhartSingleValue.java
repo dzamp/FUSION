@@ -1,5 +1,6 @@
 package abstraction;
 
+import org.apache.log4j.Logger;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
@@ -9,7 +10,7 @@ import java.util.*;
 public class ShewhartSingleValue implements IAlgorithm, Serializable {
 
     protected ShewhartState previousState;
-    //position on which the shewhard algorithm will be applied
+    //positionInStream on which the shewhard algorithm will be applied
     protected int positionInStream = 0;
     protected String fieldInStream = "";
     protected double kplus = 3;
@@ -17,7 +18,7 @@ public class ShewhartSingleValue implements IAlgorithm, Serializable {
     protected int windowSize = 100, n=2;
     protected boolean emitEntireWindow = false;
     protected Map<String, List<String>> inputFieldsFromSources;
-
+    protected Logger LOG;
 
     public ShewhartSingleValue() {
         this.previousState = new ShewhartState();
@@ -89,7 +90,7 @@ public class ShewhartSingleValue implements IAlgorithm, Serializable {
 
     @Override
     public void prepare() {
-
+        LOG = Logger.getLogger(this.getClass());
     }
 
 

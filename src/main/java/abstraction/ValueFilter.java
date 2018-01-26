@@ -29,7 +29,7 @@ public class ValueFilter  implements IAlgorithm , Serializable{
     protected Operator operator;
 
     /**
-     * The position in the values list that the Threshold will be implemented
+     * The positionInStream in the values list that the Threshold will be implemented
      */
     protected int positionInStream = 0;
 
@@ -41,7 +41,7 @@ public class ValueFilter  implements IAlgorithm , Serializable{
     /**
      * @param className        The className of the Number that will be compared(java.lang.Integer, java.lang.Long. java.lang.Float, java.lang.Double)
      * @param threshold        A value of className that will be the threshold
-     * @param positionInStream An integer indicating the position among the N values that the threshold will be executed. Allowed values are [0,N)
+     * @param positionInStream An integer indicating the positionInStream among the N values that the threshold will be executed. Allowed values are [0,N)
      * @param operator         An operator indicating the kind of comparison we would like with the threshold value
      *                         Constructor to create the MValuesThresholdBolt that will apply thresholding to the values of the stream. The stream has N values meaning that in any incoming tuple
      *                         there are multiple objects.
