@@ -30,8 +30,9 @@ public class FFieldFilter extends FieldFilter {
         FusionTuple ftuple = (FusionTuple) tuple.getValue(0);
         for (String streamId : this.inputFieldsFromSources.keySet()) {
 //            List<Values> incomingManyOrOne = ftuple.getStreamValues(streamId);
-            for (String fieldName : fieldsTobeRemoved)
+            for (String fieldName : fieldsTobeRemoved) {
                 ftuple.removeFieldAndMetadataFromStream(streamId, fieldName);
+            }
 
         }
         return new Values(ftuple);

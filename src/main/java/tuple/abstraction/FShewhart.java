@@ -35,7 +35,7 @@ public class FShewhart extends ShewhartSingleValue {
     @Override
     public Values executeAlgorithm(Tuple tuple) {
         FusionTuple ftuple = (FusionTuple) tuple.getValue(0);
-        LOG.info("incoming ftuple : " + ftuple.toString());
+//        LOG.info("incoming ftuple : " + ftuple.toString());
         streamId = this.inputFieldsFromSources.keySet().stream().findFirst().orElse(null);
         if (!fieldInStream.isEmpty() && positionInStream == -1) {
             positionInStream = ftuple.getPositionOfFieldInStream(streamId, fieldInStream);
@@ -45,7 +45,7 @@ public class FShewhart extends ShewhartSingleValue {
 //        List<Double> valuesforShewhart = new ArrayList<>();
 
 //        incomingManyOrOne.forEach(valueTuple -> valuesforShewhart.add((Double) valueTuple.get(positionInStream)));
-        if (incomingManyOrOne != null) {
+         if (incomingManyOrOne != null) {
             incomingManyOrOne.forEach(valuesTuple -> {
                 //we may have many values
                 double value = (double) valuesTuple.get(positionInStream);
@@ -71,9 +71,9 @@ public class FShewhart extends ShewhartSingleValue {
                     n = 2; //reset the window
                 this.previousState.nextState(curr_mean, curr_Variance);
             });
-            ftuple.addMetadataToStream(streamId, new Meta("shewhart", -1, "java.lang.Integer"));
+            ftuple.addMetadataToStream(streamId,new Meta("shewhart", -1, "java.lang.Integer"));
         }
-        LOG.info("Outgoing ftuple : " + ftuple.toString());
+//        LOG.info("Outgoing ftuple : " + ftuple.toString());
         return new Values(ftuple);
     }
 

@@ -2,12 +2,11 @@ name: "mqtt-topology-direct"
 config:
   topology.workers: 1
   topology.debug: true
-  topology.kryo.register:
-    - "tuple.abstraction.FusionTuple"
+
 
 components:
   - id: "cusumAlgorithm"
-    className: "tuple.abstraction.Fcusum"
+    className: "abstraction.CusumAlgorithm"
     constructorArgs:
       - 80.0
       - 20.0
@@ -18,7 +17,7 @@ components:
       - name: "withLowerBound"
 
   - id: "shewhartAlgorithm"
-    className: "tuple.abstraction.FShewhart"
+    className: "abstraction.ShewhartSingleValue"
     constructorArgs:
       - 50.0
       - 10.0
@@ -27,7 +26,7 @@ components:
         args: [1]
 
   - id: "count"
-    className: "tuple.abstraction.FObjectCount"
+    className: "abstraction.ObjectCount"
 
 mqttconfig:
   - id: "mqtt-config"
@@ -62,7 +61,7 @@ mqttconfig:
 
 spouts:
   - id: "blood-spout"
-    className: "tuple.abstraction.FMqttConsumer"
+    className: "consumers.MqttConsumerSpout"
     constructorArgs:
       - ref: "mqtt-config"
 
@@ -71,19 +70,19 @@ spouts:
 # bolt definitions
 fusionbolts:
   - id: "cusum-bolt"
-    className: "tuple.abstraction.FGenericBolt"
+    className: "abstraction.GenericBolt"
     configMethods:
       - name: "withAlgorithm"
         args: [ ref : "cusumAlgorithm"]
 
   - id: "shewhart-bolt"
-    className: "tuple.abstraction.FGenericBolt"
+    className: "abstraction.GenericBolt"
     configMethods:
       - name: "withAlgorithm"
         args: [ ref : "shewhartAlgorithm"]
 
   - id: "count"
-    className: "tuple.abstraction.FGenericBolt"
+    className: "abstraction.GenericBolt"
     configMethods:
       - name: "withAlgorithm"
         args: [ ref : "count"]

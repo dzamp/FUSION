@@ -18,7 +18,7 @@ public class Fcusum extends CusumAlgorithm {
     @Override
     public Values executeAlgorithm(Tuple tuple) {
         FusionTuple ftuple = (FusionTuple) tuple.getValue(0);
-        LOG.info("Incoming ftuple : " + ftuple.toString());
+//        LOG.info("Incoming ftuple : " + ftuple.toString());
         streamId = this.inputFieldsFromSources.keySet().stream().findFirst().orElse("default");
         if (!fieldInStream.isEmpty() && positionInStream == -1) {
             positionInStream = ftuple.getPositionOfFieldInStream(streamId, fieldInStream);
@@ -62,9 +62,10 @@ public class Fcusum extends CusumAlgorithm {
                 valuesTuple.add(signal);
 
             });
-            ftuple.addMetadataToStream(streamId, new Meta("cusum", -1, "java.lang.Integer"));
+            ftuple.addValuestoStream(streamId,incomingManyOrOne);
+            ftuple.addMetadataToStream(streamId,new Meta("cusum", -1, "java.lang.Integer"));
         }
-        LOG.info("Outgoing ftuple : " + ftuple.toString());
+//        LOG.info("Outgoing ftuple : " + ftuple.toString());
         return new Values(ftuple);
     }
 
