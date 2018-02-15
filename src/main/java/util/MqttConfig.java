@@ -1,4 +1,4 @@
-package consumers;
+package util;
 
 import scala.actors.threadpool.Arrays;
 
@@ -75,7 +75,7 @@ public class MqttConfig implements Serializable {
     }
 
     public MqttConfig withRegex(String regex) {
-        this.mapper.regex = regex;
+        this.mapper.setRegex(regex);
         return this;
     }
 

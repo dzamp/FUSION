@@ -1,6 +1,6 @@
 package flux.model.extended;
 
-import consumers.MqttConfig;
+import util.MqttConfig;
 import flux.model.BeanDef;
 
 public class MqttSpoutConfigDef extends BeanDef {

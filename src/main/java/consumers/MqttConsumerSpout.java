@@ -13,6 +13,7 @@ import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.Time;
 import org.apache.storm.utils.Utils;
 import org.eclipse.paho.client.mqttv3.*;
+import util.MqttConfig;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -86,7 +87,7 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
     public void nextTuple() {
         try {
             Pair<String, MqttMessage> messagePair = messageQueue.take();
-            Values values = config.mapper.mapToValues(messagePair.getRight().toString());
+            Values values = config.getMapper().mapToValues(messagePair.getRight().toString());
             if (values != null && values.size() > 0) {
                 emit(values);
             }

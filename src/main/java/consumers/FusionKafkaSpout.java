@@ -6,7 +6,7 @@ import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.tuple.Fields;
 
-public class FusionKafkaSpout extends KafkaSpout implements FusionIRichSpout{
+public class FusionKafkaSpout extends KafkaSpout implements FusionIRichSpout {
     public String[] outgoingFields = null;
     public SpoutConfig config = null;
 

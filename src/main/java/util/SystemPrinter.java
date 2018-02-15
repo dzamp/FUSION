@@ -1,4 +1,4 @@
-package actions;
+package util;
 
 import exceptions.FieldsMismatchException;
 import org.apache.storm.task.OutputCollector;

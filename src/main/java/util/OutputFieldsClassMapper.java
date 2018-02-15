@@ -1,6 +1,5 @@
-package consumers;
+package util;
 
-import actions.ClassConverter;
 import org.apache.storm.tuple.Values;
 
 import java.io.Serializable;
@@ -87,4 +86,11 @@ public class OutputFieldsClassMapper implements Serializable {
         return values;
     }
 
+    public String getRegex() {
+        return regex;
+    }
+
+    public void setRegex(String regex) {
+        this.regex = regex;
+    }
 }

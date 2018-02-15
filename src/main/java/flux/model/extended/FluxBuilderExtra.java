@@ -3,7 +3,6 @@ package flux.model.extended;
 import abstraction.FusionBolt;
 import consumers.FusionIRichSpout;
 import flux.model.*;
-import flux.parser.FluxParser;
 import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
