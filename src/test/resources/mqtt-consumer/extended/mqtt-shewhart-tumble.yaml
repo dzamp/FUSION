@@ -29,7 +29,7 @@ components:
       - 10
 
   - id: "shewhartAlgorithm"
-    className: "abstraction.ShewhartAlgorithm"
+    className: "algorithms.ShewhartAlgorithm"
     constructorArgs:
       - 50.0
       - 10.0

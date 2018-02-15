@@ -79,7 +79,7 @@ components:
         ref: "keyValueSchemeasMultiScheme"
 
   - id: "shewhartAlgorithm"
-    className: "abstraction.ShewhartAlgorithm"
+    className: "algorithms.ShewhartAlgorithm"
     configMethods:
       - name: "withPositionInStream"
         args: [1]
@@ -113,7 +113,7 @@ bolts:
         args: [ref: "count"]
 
 #  - id: "ObjectCountBolt"
-#    className: "algorithms.ObjectCounterBolt"
+#    className: "helper.ObjectCounterBolt"
 
 
 

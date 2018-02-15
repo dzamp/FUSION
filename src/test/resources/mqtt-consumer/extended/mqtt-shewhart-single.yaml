@@ -25,7 +25,7 @@ mqttconfig:
 components:
 
   - id: "shewhartAlgorithm"
-    className: "abstraction.ShewhartSingleValue"
+    className: "algorithms.ShewhartSingleValue"
     constructorArgs:
       - 50.0
       - 10.0

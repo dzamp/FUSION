@@ -42,7 +42,7 @@ public class FluxParserTest extends Flux {
 
     public static void runCli(CommandLine cmd) throws Exception {
         if (!cmd.hasOption(OPTION_NO_SPLASH)) {
-            printSplash();
+//            printSplash();
         }
 
         boolean dumpYaml = cmd.hasOption("dump-yaml");

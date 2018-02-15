@@ -1,4 +1,4 @@
-package abstraction;
+package algorithms;
 
 
 import java.io.Serializable;

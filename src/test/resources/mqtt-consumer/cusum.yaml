@@ -6,7 +6,7 @@ config:
 
 components:
   - id: "cusumAlgorithm"
-    className: "abstraction.CusumAlgorithm"
+    className: "algorithms.CusumAlgorithm"
     constructorArgs:
       - 80.0
       - 20.0
@@ -17,7 +17,7 @@ components:
       - name: "withLowerBound"
 
   - id: "objectCount"
-    className: "abstraction.ObjectCount"
+    className: "algorithms.ObjectCount"
 
 
 mqttconfig:
@@ -64,7 +64,7 @@ spouts:
 
 bolts:
   - id: "bolt-2"
-    className: "algorithms.ObjectCounterBolt"
+    className: "helper.ObjectCounterBolt"
     parallelism: 1
 
 

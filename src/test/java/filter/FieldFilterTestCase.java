@@ -1,7 +1,6 @@
 package filter;
 
-import abstraction.FieldFilter;
-import org.apache.storm.tuple.Fields;
+import algorithms.FieldFilter;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Test;
