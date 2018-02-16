@@ -1,5 +1,6 @@
-package abstraction;
+package algorithms;
 
+import abstraction.IAlgorithm;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 

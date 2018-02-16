@@ -1,6 +1,6 @@
 package tuple.abstraction;
 
-import abstraction.ObjectCount;
+import algorithms.ObjectCount;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 

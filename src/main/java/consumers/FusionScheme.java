@@ -5,6 +5,7 @@ import org.apache.storm.kafka.StringScheme;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.Utils;
+import util.OutputFieldsClassMapper;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -60,7 +61,7 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
         String keyString = StringScheme.deserializeString(key);
         String valueString = StringScheme.deserializeString(value);
         String[] stringValues = null;
-        if (mapper.regex != null) {
+        if (mapper.getRegex() != null) {
             return mapper.mapToValues(valueString);
         }
 
@@ -74,8 +75,8 @@ public class FusionScheme extends StringScheme implements KeyValueScheme {
     public List<Object> deserialize(ByteBuffer ser) {
         String stringValue = deserializeString(ser);
         String[] values = null;
-        if (mapper.regex != null) {
-            values = stringValue.split(mapper.regex);
+        if (mapper.getRegex() != null) {
+            values = stringValue.split(mapper.getRegex());
             return mapper.mapToValues(stringValue);
         }
         return new Values(stringValue);

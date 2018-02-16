@@ -5,7 +5,7 @@ config:
   topology.message.timeout.secs: 120
 components:
   - id: "bayes"
-    className: "abstraction.BayesianNetwork"
+    className: "algorithms.BayesianNetwork"
     configMethods:
       - name: "addNodeWithOutcomes"
         args:
@@ -41,7 +41,7 @@ components:
           - JUNCTION_TREE
 
   - id: "merger"
-    className: "abstraction.StreamMerger"
+    className: "algorithms.StreamMerger"
 
   - id: "count"
     className: "org.apache.storm.topology.base.BaseWindowedBolt$Count"
@@ -55,7 +55,7 @@ components:
       - SECONDS
 
   - id: "mockClassifier"
-    className: "abstraction.SimpleAverageClassifier"
+    className: "algorithms.SimpleAverageClassifier"
 
 mqttconfig:
   - id: "mqtt-config"

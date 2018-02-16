@@ -1,11 +1,9 @@
 package tuple.abstraction;
 
-import abstraction.FieldFilter;
+import algorithms.FieldFilter;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package consumers;
+package util;
 
 import scala.actors.threadpool.Arrays;
 

@@ -1,6 +1,6 @@
 package tuple.abstraction;
 
-import abstraction.CusumAlgorithm;
+import algorithms.CusumAlgorithm;
 import exceptions.AlgorithmDeclarationException;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;

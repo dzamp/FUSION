@@ -1,5 +1,6 @@
-package abstraction;
+package algorithms;
 
+import abstraction.IAlgorithm;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import util.FilterOperation;
@@ -10,7 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-public class ValueFilter  implements IAlgorithm , Serializable{
+public class ValueFilter  implements IAlgorithm, Serializable{
 
     protected Number threshold;
     protected Class clazz;

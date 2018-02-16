@@ -1,4 +1,4 @@
-import abstraction.ShewhartAlgorithm;
+import algorithms.ShewhartAlgorithm;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import exceptions.AlgorithmDeclarationException;
 import org.apache.storm.tuple.Tuple;

@@ -1,4 +1,4 @@
-package consumers;
+package util;
 
 import org.apache.storm.tuple.Values;
 

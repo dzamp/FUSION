@@ -42,11 +42,11 @@ bolts:
     parallelism: 2
 
   - id: "bolt-2"
-    className: "algorithms.ObjectCounterBolt"
+    className: "helper.ObjectCounterBolt"
     parallelism: 2
 
 #  - id: "bolt-3"
-#    className: "algorithms.ObjectCounterBolt"
+#    className: "helper.ObjectCounterBolt"
 #    parallelism: 2
 
 

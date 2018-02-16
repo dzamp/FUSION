@@ -1,9 +1,8 @@
 package bayesian;
 
-import abstraction.BayesianNetwork;
+import algorithms.BayesianNetwork;
 import exceptions.AlgorithmDeclarationException;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
 import org.junit.Test;
 
 import java.util.*;

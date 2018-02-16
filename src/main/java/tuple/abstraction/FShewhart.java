@@ -1,6 +1,6 @@
 package tuple.abstraction;
 
-import abstraction.ShewhartSingleValue;
+import algorithms.ShewhartSingleValue;
 import exceptions.AlgorithmDeclarationException;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;

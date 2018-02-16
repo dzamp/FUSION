@@ -76,4 +76,9 @@ public class FMqttConsumer extends MqttConsumerSpout {
         long total = timeDeltas.stream().mapToLong(Long::intValue).sum();
         System.out.println("Reporting average time for " + timeDeltas.size() + " each emitted tuple = " + ((double)total/(double)timeDeltas.size()));
     }
+
+    @Override
+    public void deactivate() {
+        System.out.println("dadwdaw");
+    }
 }

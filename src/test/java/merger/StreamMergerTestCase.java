@@ -1,6 +1,6 @@
 package merger;
 
-import abstraction.StreamMerger;
+import algorithms.StreamMerger;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;

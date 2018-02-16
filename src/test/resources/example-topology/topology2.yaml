@@ -6,7 +6,7 @@ config:
 
 components:
   - id: "filter"
-    className: "abstraction.ValueFilter"
+    className: "algorithms.ValueFilter"
     constructorArgs:
       - "java.lang.Integer"
       - 80
@@ -16,7 +16,7 @@ components:
 # spout definitions
 spouts:
   - id: "spout-1"
-    className: "algorithms.RandomNumberSpout"
+    className: "helper.RandomNumberSpout"
     constructorArgs:
       - "java.lang.Integer"
       - 100
@@ -48,11 +48,11 @@ fusionbolts:
     parallelism: 2
 
   - id: "bolt-2"
-    className: "algorithms.ObjectCounterBolt"
+    className: "helper.ObjectCounterBolt"
     parallelism: 2
 
   - id: "bolt-3"
-    className: "algorithms.ObjectCounterBolt"
+    className: "helper.ObjectCounterBolt"
     parallelism: 2
 
 

@@ -1,7 +1,7 @@
 name: "mqtt-topology-direct"
 config:
   topology.workers: 1
-  topology.debug: true
+  topology.debug: false
   topology.kryo.register:
     - "tuple.abstraction.FusionTuple"
 

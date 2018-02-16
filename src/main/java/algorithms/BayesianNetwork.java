@@ -1,5 +1,6 @@
-package abstraction;
+package algorithms;
 
+import abstraction.IAlgorithm;
 import exceptions.AlgorithmDeclarationException;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;

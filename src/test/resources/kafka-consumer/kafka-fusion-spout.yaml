@@ -94,7 +94,7 @@ spouts:
 # bolt definitions
 bolts:
   - id: "object-counter"
-    className: "algorithms.ObjectCounterBolt"
+    className: "helper.ObjectCounterBolt"
 
 
 #stream definitions
