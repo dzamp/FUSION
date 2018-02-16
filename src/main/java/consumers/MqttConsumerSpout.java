@@ -85,15 +85,15 @@ public class MqttConsumerSpout implements MqttCallback, FusionIRichSpout {
 
     @Override
     public void nextTuple() {
-        try {
-            Pair<String, MqttMessage> messagePair = messageQueue.take();
+        Pair<String, MqttMessage> messagePair = null;
+        messagePair = messageQueue.poll(); //resolve to polling
+        if (messagePair != null) {
             Values values = config.getMapper().mapToValues(messagePair.getRight().toString());
             if (values != null && values.size() > 0) {
                 emit(values);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
+        else Utils.sleep(1000);
     }
 
     public void emit(Values values) {
