@@ -19,6 +19,7 @@ public class OutputFieldsClassMapper implements Serializable {
 
     //    protected Logger log;
     public OutputFieldsClassMapper(String... classNames) {
+        this.classNames = classNames;
         setClasses(classNames);
         resolveClassConverters(classNames);
     }
