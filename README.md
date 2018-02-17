@@ -54,3 +54,6 @@ java -jar target/fusion-1.0-SNAPSHOT-jar-with-dependencies.jar --local src/test/
 
 
 
+
+
+

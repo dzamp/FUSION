@@ -1,6 +1,10 @@
 package tuple.abstraction;
 
 import abstraction.ShewhartSingleValue;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.ByteBufferOutput;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import exceptions.AlgorithmDeclarationException;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -9,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class FShewhart extends ShewhartSingleValue {
+    protected Kryo serializer;
     private String streamId;
 
     public FShewhart() {
@@ -17,6 +22,12 @@ public class FShewhart extends ShewhartSingleValue {
 
     public FShewhart(double initialMean, double initialVariance) {
         super(initialMean, initialVariance);
+    }
+
+    @Override
+    public void prepare() {
+        super.prepare();
+        serializer = new Kryo();
     }
 
     @Override
@@ -34,8 +45,10 @@ public class FShewhart extends ShewhartSingleValue {
 
     @Override
     public Values executeAlgorithm(Tuple tuple) {
-        FusionTuple ftuple = (FusionTuple) tuple.getValue(0);
+//        FusionTuple ftuple = (FusionTuple) tuple.getValue(0);
 //        LOG.info("incoming ftuple : " + ftuple.toString());
+        Input input = new Input(tuple.getBinary(0));
+        FusionTuple ftuple = (FusionTuple) serializer.readClassAndObject(input);
         streamId = this.inputFieldsFromSources.keySet().stream().findFirst().orElse(null);
         if (!fieldInStream.isEmpty() && positionInStream == -1) {
             positionInStream = ftuple.getPositionOfFieldInStream(streamId, fieldInStream);
@@ -45,7 +58,7 @@ public class FShewhart extends ShewhartSingleValue {
 //        List<Double> valuesforShewhart = new ArrayList<>();
 
 //        incomingManyOrOne.forEach(valueTuple -> valuesforShewhart.add((Double) valueTuple.get(positionInStream)));
-         if (incomingManyOrOne != null) {
+        if (incomingManyOrOne != null) {
             incomingManyOrOne.forEach(valuesTuple -> {
                 //we may have many values
                 double value = (double) valuesTuple.get(positionInStream);
@@ -71,12 +84,18 @@ public class FShewhart extends ShewhartSingleValue {
                     n = 2; //reset the window
                 this.previousState.nextState(curr_mean, curr_Variance);
             });
-            ftuple.addMetadataToStream(streamId,new Meta("shewhart", -1, "java.lang.Integer"));
+            ftuple.addMetadataToStream(streamId, new Meta("shewhart", -1, "java.lang.Integer"));
         }
 //        LOG.info("Outgoing ftuple : " + ftuple.toString());
-        return new Values(ftuple);
+
+        return new Values(serializeObject(ftuple));
     }
 
+    private byte[] serializeObject(FusionTuple ftuple) {
+        Output output = new Output(new ByteBufferOutput());
+        serializer.writeClassAndObject(output, ftuple);
+        return output.getBuffer();
+    }
 
     @Override
     public String[] transformFields(String[] incomingFields) {

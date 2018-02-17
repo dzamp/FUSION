@@ -2,13 +2,14 @@ package tuple.abstraction;
 
 import org.apache.storm.tuple.Values;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FusionTuple {
-    private static final long serialVersionUID = 1L;
+public class FusionTuple implements Serializable {
+    private static final long serialVersionUID = 12341234L;
     //        public Object lock;
     //wrapper class for tuple.
     // this map will contain all values for alla streams, of any kind, by its component name(spout/bolt) or
@@ -31,28 +32,23 @@ public class FusionTuple {
     //Always return NEW TYPES TO AVOID CONCURRENCY ISSUES
 
     public List<Values> getStreamValues(String id) {
-        List<Values> valuesList = new ArrayList<>();
-        if (valueMap.containsKey(id)) {
-//            Values newVals ;
-//            for(Values values :valueMap.get(id)){
-//               newVals = new Values(values);
-                valuesList.addAll(valueMap.get(id));
-//            }
-        }
-        return valuesList;
+        List<Values> valeus = new ArrayList<>();
+        if (valueMap.containsKey(id)) valeus = valueMap.get(id);
+        return valeus;
     }
 
 
     public Meta getFieldMetadataByName(String streamId, String fieldName) {
+        Meta meta = new Meta();
         if (metaMap.containsKey(streamId)) {
             if (metaMap.get(streamId) != null && metaMap.get(streamId).size() != 0) {
                 for (Meta pair : metaMap.get(streamId)) {
                     if (pair.getFieldName().equals(fieldName))
-                        return new Meta(pair.fieldName, pair.position, pair.className);
+                        meta = pair;
                 }
             }
         }
-        return null;
+        return meta;
     }
 
     public int getPositionOfFieldInStream(String streamId, String fieldName) {
@@ -72,7 +68,7 @@ public class FusionTuple {
             if (metaMap.get(streamId) != null && metaMap.get(streamId).size() != 0) {
                 for (Meta pair : metaMap.get(streamId)) {
                     if (pair.getFieldName().equals(fieldName))
-                        return new String(pair.getClassName());
+                        return pair.getClassName();
                 }
             }
         }
@@ -81,15 +77,18 @@ public class FusionTuple {
 
     public List<Meta> getStreamMetadata(String streamId) {
         List<Meta> metaList = new ArrayList<>();
-        metaList.addAll(metaList);
+        if(metaMap.containsKey(streamId))
+            metaList = metaMap.get(streamId);
         return metaList;
     }
 
     public List<String> getFieldNamesOfStream(String streamId) {
-        List<Meta> metadata = this.metaMap.get(streamId);
         List<String> fieldNames = new ArrayList<>();
-        if (metadata != null) {
-            metadata.forEach(meta -> fieldNames.add(meta.getFieldName()));
+        if(this.metaMap.containsKey(streamId)) {
+            List<Meta> metadata = this.metaMap.get(streamId);
+            if (metadata != null) {
+                metadata.forEach(meta -> fieldNames.add(meta.getFieldName()));
+            }
         }
         return fieldNames;
     }

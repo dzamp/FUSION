@@ -1,6 +1,10 @@
 package tuple.abstraction;
 
 import abstraction.CusumAlgorithm;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.ByteBufferOutput;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import exceptions.AlgorithmDeclarationException;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -10,14 +14,23 @@ import java.util.Map;
 
 public class Fcusum extends CusumAlgorithm {
     String streamId;
-
+    protected  Kryo serializer;
     public Fcusum(double median, double drift, double threshold) {
         super(median, drift, threshold);
     }
 
     @Override
+    public void prepare() {
+        super.prepare();
+        serializer = new Kryo();
+    }
+
+    @Override
     public Values executeAlgorithm(Tuple tuple) {
-        FusionTuple ftuple = (FusionTuple) tuple.getValue(0);
+
+//        FusionTuple ftuple = (FusionTuple) tuple.getValue(0);
+        Input input = new Input(tuple.getBinary(0));
+        FusionTuple ftuple = (FusionTuple)serializer.readClassAndObject(input);
 //        LOG.info("Incoming ftuple : " + ftuple.toString());
         streamId = this.inputFieldsFromSources.keySet().stream().findFirst().orElse("default");
         if (!fieldInStream.isEmpty() && positionInStream == -1) {
@@ -62,11 +75,18 @@ public class Fcusum extends CusumAlgorithm {
                 valuesTuple.add(signal);
 
             });
-            ftuple.addValuestoStream(streamId,incomingManyOrOne);
+//            ftuple.addValuestoStream(streamId,incomingManyOrOne);
             ftuple.addMetadataToStream(streamId,new Meta("cusum", -1, "java.lang.Integer"));
         }
 //        LOG.info("Outgoing ftuple : " + ftuple.toString());
-        return new Values(ftuple);
+
+        return new Values(serializeObject(ftuple));
+    }
+
+    private byte[] serializeObject(FusionTuple ftuple) {
+        Output output = new Output(new ByteBufferOutput());
+        serializer.writeClassAndObject(output,ftuple);
+        return output.getBuffer();
     }
 
     @Override

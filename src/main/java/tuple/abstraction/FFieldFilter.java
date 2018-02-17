@@ -1,15 +1,19 @@
 package tuple.abstraction;
 
 import abstraction.FieldFilter;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.ByteBufferOutput;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class FFieldFilter extends FieldFilter {
+
+    private Kryo serializer;
 
     public FFieldFilter(String... fieldsTobeRemoved) {
         super(fieldsTobeRemoved);
@@ -21,13 +25,20 @@ public class FFieldFilter extends FieldFilter {
     }
 
     @Override
+    public void prepare() {
+        super.prepare();
+        serializer = new Kryo();
+    }
+
+    @Override
     public String[] transformFields(String[] incomingFields) {
         return new String[]{"fusionTuple"};
     }
 
     @Override
     public Values executeAlgorithm(Tuple tuple) {
-        FusionTuple ftuple = (FusionTuple) tuple.getValue(0);
+        Input input = new Input(tuple.getBinary(0));
+        FusionTuple ftuple = (FusionTuple) serializer.readClassAndObject(input);
         for (String streamId : this.inputFieldsFromSources.keySet()) {
 //            List<Values> incomingManyOrOne = ftuple.getStreamValues(streamId);
             for (String fieldName : fieldsTobeRemoved) {
@@ -35,7 +46,14 @@ public class FFieldFilter extends FieldFilter {
             }
 
         }
-        return new Values(ftuple);
+
+        return new Values(serializeObject(ftuple));
+    }
+
+    private byte[] serializeObject(FusionTuple ftuple) {
+        Output output = new Output(new ByteBufferOutput());
+        serializer.writeClassAndObject(output, ftuple);
+        return output.getBuffer();
     }
 
 }

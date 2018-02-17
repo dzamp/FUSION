@@ -192,6 +192,13 @@
             <version>${jayes.version}</version>
         </dependency>
 
+        <!--for explicit de/serialization only-->
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+
     </dependencies>
 
     <profiles>

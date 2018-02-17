@@ -4,9 +4,13 @@ package tuple.abstraction;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class Meta {
+    private static final long serialVersionUID = 43214321L;
     String fieldName;
     int position;
     String className;
+
+    public Meta() {
+    }
 
     public Meta(String fieldName, int position, String className) {
         this.fieldName = fieldName;

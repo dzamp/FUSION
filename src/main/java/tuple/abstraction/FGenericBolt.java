@@ -3,6 +3,7 @@ package tuple.abstraction;
 import abstraction.FusionBolt;
 import abstraction.GenericBolt;
 import abstraction.IAlgorithm;
+import com.esotericsoftware.kryo.Kryo;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichBolt;
@@ -28,7 +29,6 @@ public class FGenericBolt implements FusionBolt, IRichBolt {
     protected String[] outgoingFieldNames = null;
     protected List<String> streamIds = null;
     protected Map<String, List<String>> sendingComponentToIncomingFieldsMap;
-
 
     public FGenericBolt withAlgorithm(IAlgorithm algo) {
         this.streamIds = new ArrayList<>();

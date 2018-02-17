@@ -1,5 +1,8 @@
 package tuple.abstraction;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.ByteBufferOutput;
+import com.esotericsoftware.kryo.io.Output;
 import consumers.MqttConsumerSpout;
 import flux.model.extended.MqttSpoutConfigDef;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -15,7 +18,7 @@ import java.util.Map;
 public class FMqttConsumer extends MqttConsumerSpout {
     long t1;
     private List<Long> timeDeltas;
-
+    Kryo serializer;
 
     public FMqttConsumer(MqttSpoutConfigDef def) {
         super(def);
@@ -26,6 +29,7 @@ public class FMqttConsumer extends MqttConsumerSpout {
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         super.open(conf, context, collector);
         timeDeltas = new ArrayList<>();
+        serializer = new Kryo();
     }
 
     @Override
@@ -51,7 +55,10 @@ public class FMqttConsumer extends MqttConsumerSpout {
                 List<Values> vals = new ArrayList<>();
                 vals.add(values);
                 ftuple.addValuestoStream(stream, vals);
-                collector.emit(stream, new Values(ftuple));
+                Output output = new Output(new ByteBufferOutput());
+                serializer.writeClassAndObject(output,ftuple);
+
+                collector.emit(stream, new Values(output.getBuffer()));
             });
         }
         timeDeltas.add(System.currentTimeMillis() - t1);
@@ -76,4 +83,6 @@ public class FMqttConsumer extends MqttConsumerSpout {
         long total = timeDeltas.stream().mapToLong(Long::intValue).sum();
         System.out.println("Reporting average time for " + timeDeltas.size() + " each emitted tuple = " + ((double)total/(double)timeDeltas.size()));
     }
+
+
 }
