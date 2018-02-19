@@ -21,7 +21,7 @@ public class TestMqttMessageMetric {
     protected Random rand;
     protected OutputFieldsClassMapper mapper;
     protected List<Long> timeDeltaList;
-    protected int size = 100000;
+    protected int size = 2_000_000;
 
     @Before
     public void setUp() {
@@ -45,25 +45,18 @@ public class TestMqttMessageMetric {
 
     @Test
     public void testSimpleMessageMetric() {
-        measureParsingTime();
-    }
-
-    @Test
-    public void testSimpleMessageMetricAgain() {
-        measureParsingTime();
-    }
-
-    @Test
-    public void testSimpleMessageMetricThirdTime() {
-        measureParsingTime();
+        for(int i=1; i<= 10; i++){
+            System.out.print("round " + i + " ");
+            measureParsingTime();
+        }
     }
 
 
     private void measureParsingTime() {
-        while (!messageQueue.isEmpty()) {
-            long t1 = System.nanoTime();
+        for(int i=0; i<200_000; i++){
             Pair<String, MqttMessage> messagePair = null;
             messagePair = messageQueue.poll(); //resolve to polling
+            long t1 = System.nanoTime();
             if (messagePair != null) {
                 Values values = mapper.mapToValues(messagePair.getRight().toString());
                 if (values != null && values.size() > 0) {
@@ -79,7 +72,9 @@ public class TestMqttMessageMetric {
         assertEquals(total, total2);
         double mediantime = ((double) total / (double) timeDeltaList.size());
         long roundedTime = Math.round(mediantime);
-        System.out.println("Reporting average time for " + timeDeltaList.size() + " each emitted tuple = " + mediantime);
-        System.out.println("Reporting rounded average time " + roundedTime + "ns");
+        System.out.print("Reporting average time for parsing " + timeDeltaList.size() + " values for each emitted tuple = " + mediantime);
+        System.out.println(" rounded average " + roundedTime + "ns");
     }
 }
+
+
